@@ -35,7 +35,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
     setTransModif(laTrans)
     setTimeout(() => {
       document.getElementById("openModalTrans")?.click()
-    }, 100);
+    }, 200);
   }
   
   //On supprime la transaction
@@ -66,7 +66,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
           <FormulaireTrans listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} listeBudget={listeBudget} setListeBudget={setListeBudget}  />
         </div>
 
-        <div className='lg:col-span-2'>
+        <div className='lg:col-span-2 mt-10 lg:mt-0'>
           <div className="flex flex-col gap-1 mb-3">
               { /* liste des budget de l'user connecté dans le filtre pr les recherches */
                 listeBudget?.length>0 ? (

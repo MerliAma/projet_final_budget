@@ -1,26 +1,21 @@
-"use client"
-import FenBudget from '@/composants/FenBudget';
-import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
-//import { useRouter } from 'next/navigation';
-import React, { useState } from 'react'
+import BudgetIntermd from '@/composants/BudgetIntermd'
+import React from 'react'
 
-/*export const metadata = {
+export const metadata = {
   title: "Mes Budgets",
   description: "Gestion Budget",
-};*/
+};
 
 
 function page() {
-  const [listeBudget, setListeBudget]=useState([])
+  //const [listeBudget, setListeBudget]=useState([])
   /*if(!RecupInfosUserConnecte()) {
     useRouter().push("/")
   }*/
 
   return (
     <div className="p-4">
-      <h3 className="font-bold m-3" >Mes Budgets</h3>
-      {/* appel du composant contenant une grille pour la fenêtre Budget */}
-      <FenBudget listeBudget={listeBudget} setListeBudget={setListeBudget}/>
+      <BudgetIntermd />
     </div>
   )
 }

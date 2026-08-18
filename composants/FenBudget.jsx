@@ -29,7 +29,7 @@ function FenBudget({listeBudget, setListeBudget}) {
         setBudgetModif(leBudget)
         setTimeout(() => {
             document.getElementById("openModalBTN")?.click()
-        }, 100);
+        }, 200);
     }
 
     //On supprime le budget
@@ -101,7 +101,7 @@ function FenBudget({listeBudget, setListeBudget}) {
           </div>
         </div>
 
-        <div>
+        <div className='mt-10 lg:mt-0'>
           
             <FormulaireBudg listeBudget={listeBudget} setListeBudget={setListeBudget} />
         </div>

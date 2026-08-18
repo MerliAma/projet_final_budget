@@ -48,7 +48,7 @@ function Se_connecter() {
         }
 
   return (
-    <section className="bg-teal-800 h-full w-full absolute">
+    <section className="bg-teal-700 h-full w-full absolute">
           <div className='bg-base-100/50 w-100 shadow-sm mx-auto mt-20 p-10 rounded-t-full'>
               <div className="flex items-center justify-center gap-2 ms-2"> 
                 <LuWallet className='text-teal-900 text-5xl' />

@@ -55,7 +55,7 @@ function S_Inscrire() {
     console.log(listeUsers)
 
     return (
-    <section className="bg-teal-800 h-full w-full absolute">
+    <section className="bg-teal-700 h-full w-full absolute">
         <div className="card bg-base-100/50 w-100 shadow-sm mx-auto my-25" id="MaCarte">
           <figure className="px-10 pt-10 flex flex-col gap-3">
               <button type="button" className="ml-auto flex items-center gap-3 cursor-pointer hover:text-teal-950" id="Sign"><Link href="/">Se Connecter<i className="bi bi-arrow-right "></i></Link></button>
