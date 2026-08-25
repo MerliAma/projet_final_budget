@@ -4,10 +4,13 @@ import FormulaireTrans from '@/composants/FormulaireTrans';
 import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
 import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
 import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB';
+import Link from 'next/link';
 
 function FenTransaction({listeTransaction, setListeTransaction, listeBudget, setListeBudget}) {
   
   const [IdUserConnecte, setIdUserConnecte] = useState("")
+  const [listeBudFiltre, setListeBudFiltre] = useState([]) // pour faire le filtre, ce tableau est filtré et parcouru
+
     //On recupère la liste des Transactions-Budget dans indexDb quand le composant est monté (page totalement chargé)
       useEffect(() => {
   
@@ -20,6 +23,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
           getAllDataTodatabase("budget", (e) => {
             e.filter(leBudget => leBudget.idUser===IdUserConnecte)
             setListeBudget(e)
+            setListeBudFiltre(e)
           })
 
           //on recherche les transactions..
@@ -28,6 +32,19 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
         })
   
       }, [])
+
+      //fonction au changement du select pour le filtre budget
+      const filtreBudget =(Budgetselc) =>{
+        //setListeBudget(listeBudFiltre)
+        if(Number(Budgetselc)===0){
+            
+            setListeBudFiltre(listeBudget.filter(leBudget => leBudget.idUser===IdUserConnecte))
+        }
+        else{
+          
+          setListeBudFiltre(listeBudget.filter(leBudget => leBudget.id===Number(Budgetselc)) )
+        }
+      }
 
       //pour la modification de la transaction. on actualise la valeur de transModif avec l'objet laTrans et on la passe en props au formulaire
   const [transModif, setTransModif] = useState(null)
@@ -72,7 +89,8 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                 listeBudget?.length>0 ? (
                   <>
                   <label className='ms-auto'>Filtrer par Budget</label>
-                  <select defaultValue="" className="ms-auto select select-md w-60 md:w-100 outline-0 ring-0" name="budget">
+                  <select defaultValue="" onChange={(e) => filtreBudget(e.target.value)} className="ms-auto select select-md w-60 md:w-100 outline-0 ring-0" name="budget">
+                    <option value="" >Toutes les transactions</option>
                     {
                       listeBudget?.map(leBudget => (
                         <option value={leBudget?.id} key={leBudget?.id}>{leBudget?.descriptionBud}</option>
@@ -83,7 +101,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                 ) : 
                 (
                   <>
-                    <button className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></button>
+                    <Link href={"/Budget"} className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></Link>
                   </>
                 )
               }
@@ -103,17 +121,17 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                   <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="TableTrans">
                 {/* Liste de toutes les transactions de l'user  */}
                 {
-                  (listeBudget?.length>0 && listeTransaction?.length>0 ) && 
-                  //on parcourt les budget de l'user, puis on filtre les transactions de ce budget 
+                  (listeBudFiltre?.length>0 && listeTransaction?.length>0 ) && 
+                  //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
                   <>
-                  {listeBudget.map(leBudget => (
-                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id).map((laTransUser,index) => (
-                      <tr key={laTransUser?.id || index+1}>
-                  <th>{index+1}</th>
-                  <td>{laTransUser?.dateEnrg || index+1}</td>
+                  {listeBudFiltre.map((leBudget,index) => (
+                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id).map((laTransUser) => (
+                      <tr key={laTransUser?.id}>
+                  <td>{index+1}</td>
+                  <td>{laTransUser?.dateEnrg}</td>
                   <td>{laTransUser?.descriptionTrans}</td>
                   <td>{laTransUser?.montantTrans}</td>
                   <td>{leBudget?.descriptionBud}</td>

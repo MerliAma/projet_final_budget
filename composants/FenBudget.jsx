@@ -34,18 +34,19 @@ function FenBudget({listeBudget, setListeBudget}) {
 
     //On supprime le budget
     const supprimeBudget = (id) => {
+      if (typeof window === "undefined") return;
       //verifier si le budget n'a pas des transactions asoocié //supprimer le string après String(id)
-      getOneDataTodatabase("transaction",{champs:"budgetTrans", valeur:String(id)}, (e) =>{
+      getOneDataTodatabase("transaction",{champ:"budgetTrans", valeur:String(id)}, (e) =>{
         if(e) {
-          alert("Suppression impossible! Ce budget à des transactions associées")
-          return
+          alert("Suppression impossible! Ce budget a des transactions associées")
+          return;
         }
-      })
 
+        //dans le cas ou le budget n'a pas encore de transaction on peut le supprimer si l'user confirme
         if (confirm("Voulez-vous supprimer ce Budget ?")) {
             DeleteToDB("budget", id, (e) => {
                 if (!e) {
-                    alert("Tâche non supprimé. une erreur s'est produite")
+                    alert("Budget non supprimé. une erreur s'est produite")
                     return;
                 }
 
@@ -57,6 +58,7 @@ function FenBudget({listeBudget, setListeBudget}) {
                 setListeBudget(nouveauTableau);
             })
         }
+      })
     }
 
   

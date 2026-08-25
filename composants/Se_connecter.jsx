@@ -5,21 +5,27 @@ import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB'
 import MessageErreur from './MessageErreur'
 import { useRouter } from 'next/navigation'  //a la place de next/router
 import { LuWallet} from 'react-icons/lu'
+import { InitAuth } from '@/firebaseConfig'
+import { sendEmailVerification, signInWithEmailAndPassword } from 'firebase/auth'
 
 
 function Se_connecter() {
 
-    const [login, setLogin] = useState("")
+    //const [login, setLogin] = useState("")
+    const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [rep, setRep] = useState() //le message de reponse en cas d'erreur...
+    const [rep, setRep] = useState(null) //le message de reponse en cas d'erreur...
+
+    //Le loader
+    const [load, setLoad] = useState(false)
 
     const router=useRouter()
 
     //on créé une reference au formulaire
     const formRef = useRef(null)
 
-    //On recherche l'utilisateur dans la base de données indexDB
-        const submitForm = (e) => {
+    //On recherche l'utilisateur dans la base de données indexDB (remplacer par firebase)
+        /*const submitForm = (e) => {
             e.preventDefault()
     
             if (typeof window === "undefined") {
@@ -45,7 +51,55 @@ function Se_connecter() {
                     setRep(false)
                 }
             })
+        }*/
+
+        //On se connecte par email/mot de passe firebase
+    const submitForm = async (e) => {
+        e.preventDefault()
+        try {
+
+            setLoad(true) //On active le loader du bouton
+
+            //connexion
+            const data = await signInWithEmailAndPassword(InitAuth, email, password)
+
+            //On verifie que l'email est verifié
+            if (!data?.user?.emailVerified) {
+                await sendEmailVerification(data.user) //On renvoie l'email de verification
+                alert("Votre compte n'est pas encore verifié, un mail vous a été envoyé pour l'activer")
+                return;
+            }
+
+            if (typeof window !== "undefined") {
+                localStorage.setItem("InfosUser", JSON.stringify({
+                    idUser: data.user.uid,
+                    nomUser: data.user.displayName
+                }))
+            }
+
+            //On affiche le message de succès
+            setRep(true)
+            //rediriger vers le tableau de bord
+            router.push(`/TableauBord`)
+
+        } catch (error) {
+
+            const message = error?.message
+            console.log("Erreur: ", message)
+
+            setRep(
+                (message === "Firebase: Error (auth/invalid-credential).") ? "Email ou mot de passe non valide" :
+                    (message === "Firebase: Error (auth/too-many-requests).") ? "Trop de tentatives, reassayer plus tard" :
+                        "Une erreur inconnue s'est produite"
+            )
+           //setRep()
+
+        } finally {
+
+            setLoad(false)
         }
+    }
+
 
   return (
     <section className="bg-teal-700 h-full w-full absolute">
@@ -64,14 +118,24 @@ function Se_connecter() {
           </figure>
           <div className="card-body items-center text-center">
               <form className="w-full" ref={formRef} onSubmit={(e) => submitForm(e)}>
-                  <input type="text" id="login" placeholder="login" onChange={(e) => setLogin(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0" />
+                  {/*<input type="text" id="login" placeholder="login" onChange={(e) => setLogin(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0" />*/}
+                  <input type="email" id="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />
                   <input type="password" id="password" placeholder="Mot de passe" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0" />
                   <div className="flex items-center justify-between">
-                      <button type="submit" id="Connexion" className="btn bg-teal-800 hover:bg-teal-900 text-white font-semibold py-2 px-6 rounded-lg transition transform duration-200 hover:scale-105 active:scale-95 shadow-lg hover:animate-none focus:outline-none focus:ring-2 focus:ring-indigo-300">Se Connecter</button>
+                      <button type={!load ? "submit" : "button"} disabled={load} id="Connexion" className="btn bg-teal-800 hover:bg-teal-900 text-white font-semibold py-2 px-6 rounded-lg transition transform duration-200 hover:scale-105 active:scale-95 shadow-lg hover:animate-none focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                        {!load ? (
+                            <span>Se Connecter</span>
+                        ) : (
+                            <div className='flex items-center gap-3'>
+                                <span className="loading loading-spinner loading-xl"></span>
+                                <span>Connexion en cours...</span>
+                            </div>
+                        )}
+                      </button>
                       <span className="text-sm text-gray-600 italic cursor-pointer">Mot de Passe oublié ?</span>
                   </div>
               </form>
-              { (rep===false) && <MessageErreur message={"Une erreur s'est produite"} onClose={() => setRep(null)} />}
+              { (!rep!==null ) && <MessageErreur message={rep} onClose={() => setRep(null)} />}
           </div>
       </div>
     </section>
