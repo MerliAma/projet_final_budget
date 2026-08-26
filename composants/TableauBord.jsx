@@ -1,15 +1,17 @@
 "use client"
 import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
 import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
+import { SommeMontantBud, SommeTransactions } from '@/mesFonctions/SommeMontant';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react'
+import { IoEyeSharp } from "react-icons/io5";
 
-function TableauBord() {
-  
+function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
+
     const [IdUserConnecte, setIdUserConnecte] = useState("")
-    const [listeBudget, setListeBudget] = useState([])
-    const [listeTransaction, setListeTransaction] = useState([])
-
+    
+    let compter=1
+    
     //On recupère la liste des Transactions-Budget dans indexDb quand le composant est monté (page totalement chargé)
     useEffect(() => {
 
@@ -50,15 +52,17 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
             <div className='flex flex-col-reverse md:flex-row items-center gap-15 md:justify-between my-5'>
                 <h3 className="font-bold m-3">Mes 10 dernières transactions</h3>
                 {/*<button className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></button>*/}
-                <Link href={"/Budget"} className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></Link>
-                <Link href={"/Transaction"} className='btn bg-teal-900 text-white'>Nouvelle Transaction <i className="bi bi-plus-lg"></i></Link>
+                <div className='flex gap-3'>
+                    <Link href={"/Budget"} className='badge badge-lg bg-teal-900 text-white'>Consulter Budget <IoEyeSharp /> </Link>
+                    <Link href={"/Transaction"} className='badge badge-lg bg-teal-900 text-white'>Consulter Transaction <IoEyeSharp /></Link>
+                </div>
             </div>
             <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
                 <table className="table">
                     {/* head */}
                     <thead>
                         <tr>
-                            <th>Id</th>
+                            <th>N°</th>
                             <th>Date</th>
                             <th>Description</th>
                             <th>Montant</th>
@@ -72,11 +76,14 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
                   (listeBudget?.length>0 && listeTransaction?.length>0 ) && 
                   //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
                   <>
-                  {listeBudget.map((leBudget,index) => (
-                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id).slice(0, 10).map((laTransUser) => (
-                      <tr key={laTransUser?.id}>
-                  <td>{index+1}</td>
-                  <td>{laTransUser?.dateEnrg}</td>
+                  {listeBudget.map((leBudget,indexB) => (
+                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id)
+                    .slice(0, 10)
+                    .sort((a, b) => Date.parse(b.dateEnrg) - Date.parse(a.dateEnrg))
+                    .map((laTransUser,indexT) => (
+                      <tr key={`${indexB}-${indexT}`}>
+                  <td id="num">{compter++}</td>
+                  <td>{laTransUser?.dateEnrg.toLocaleString()}</td>
                   <td>{laTransUser?.descriptionTrans}</td>
                   <td>{laTransUser?.montantTrans}</td>
                   <td>{leBudget?.descriptionBud}</td>
@@ -92,21 +99,21 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
             {/* Etiquettes */}
             <div className="grid grid-cols-3 gap-5 my-10">
                 <div className="card bg-base-100 card-lg shadow-sm">
-                    <div className="card-body">
-                        <h2 className="card-title">0 FCFA</h2>
+                    <div className="card-body"> {/* somme du montant alloué de tous les budgets confondues */}
+                        <h2 className="card-title">{`${SommeMontantBud(listeBudget)} FCFA`}</h2>
                         <p>Montant Total alloué</p>
                     </div>
                 </div>
 
                 <div className="card bg-base-100 card-lg shadow-sm">
-                    <div className="card-body">
-                        <h2 className="card-title">0 FCFA</h2>
+                    <div className="card-body"> {/* somme de toutes les transactions confondues */}
+                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction)} FCFA`}</h2>
                         <p>Total des Transactions</p>
                     </div>
                 </div>
 
                 <div className="card bg-base-100 card-lg shadow-sm">
-                    <div className="card-body">
+                    <div className="card-body"> {/* ? */}
                         <h2 className="card-title">0 %</h2>
                         <p>Taux de Réussite</p>
                     </div>

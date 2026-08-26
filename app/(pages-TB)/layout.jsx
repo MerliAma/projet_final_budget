@@ -1,5 +1,5 @@
 "use client"
-import { Deconnexion } from '@/mesFonctions/Deconnexion'
+import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import React, { Children } from 'react'
@@ -11,21 +11,28 @@ function layout({children}) {
 
     const [etat, setEtat] = useState(null)//pr la déconnexion
 
+    const router=useRouter()
     useEffect(() => {
-            const infos = localStorage.getItem("InfosUser")
-            setInfosUser(infos ? JSON.parse(infos) : null)
-            setEtat(true)
+            const infos = RecupInfosUserConnecte()
+            setInfosUser(infos)
+            if(infos===null){
+                setEtat(false)
+                router.push("/")
+            }
+            else{
+                setEtat(true)
+            }
     }, [])
 
-    /*useEffect(() => {
+    useEffect(() => {
         if(etat===false){
-            const router=useRouter()
+            //const router=useRouter()
             router.push("/")
             if(RecupInfosUserConnecte()){
                 localStorage.removeItem("InfosUser")
             } 
             }
-    }, [etat])*/
+    }, [etat])
 
     return (
     <div>

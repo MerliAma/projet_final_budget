@@ -11,6 +11,9 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
   const [IdUserConnecte, setIdUserConnecte] = useState("")
   const [listeBudFiltre, setListeBudFiltre] = useState([]) // pour faire le filtre, ce tableau est filtré et parcouru
 
+  //compteur pour N° d'ordre de tableau
+  let compter=1
+
     //On recupère la liste des Transactions-Budget dans indexDb quand le composant est monté (page totalement chargé)
       useEffect(() => {
   
@@ -112,7 +115,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
               {/* head */}
               <thead>
                 <tr>
-                  <th>Id</th>
+                  <th>N°</th>
                   <th>Date Ajout</th>
                   <th>Description</th>
                   <th>Montant</th>
@@ -127,11 +130,11 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                   (listeBudFiltre?.length>0 && listeTransaction?.length>0 ) && 
                   //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
                   <>
-                  {listeBudFiltre.map((leBudget,index) => (
-                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id).map((laTransUser) => (
-                      <tr key={laTransUser?.id}>
-                  <td>{index+1}</td>
-                  <td>{laTransUser?.dateEnrg}</td>
+                  {listeBudFiltre.map((leBudget,indexB) => (
+                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id).map((laTransUser,indexT) => (
+                      <tr key={`${indexB}-${indexT}`}>
+                  <td>{compter++}</td>
+                  <td>{laTransUser?.dateEnrg.toLocaleString()}</td>
                   <td>{laTransUser?.descriptionTrans}</td>
                   <td>{laTransUser?.montantTrans}</td>
                   <td>{leBudget?.descriptionBud}</td>

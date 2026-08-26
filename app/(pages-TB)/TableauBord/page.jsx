@@ -1,4 +1,4 @@
-import TableauBord from '@/composants/TableauBord';
+import TableauBordIntermd from '@/composants/TableauBordIntermd';
 import React from 'react'
 
 export const metadata = {
@@ -9,7 +9,7 @@ export const metadata = {
 function page() {
     return (
         <div>
-            <TableauBord />
+            <TableauBordIntermd />
         </div>
     )
 }

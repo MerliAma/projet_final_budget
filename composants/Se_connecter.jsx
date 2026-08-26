@@ -102,8 +102,8 @@ function Se_connecter() {
 
 
   return (
-    <section className="bg-teal-700 h-full w-full absolute">
-          <div className='bg-base-100/50 w-100 shadow-sm mx-auto mt-20 p-10 rounded-t-full'>
+    <section className="bg-teal-600 h-full w-full absolute">
+          <div className='bg-base-100/50 w-100 shadow-sm mx-auto mt-10 p-10 rounded-t-full'>
               <div className="flex items-center justify-center gap-2 ms-2"> 
                 <LuWallet className='text-teal-900 text-5xl' />
                 <span className='text-4xl text-teal-900 font-bold'><i>T</i>op<i>B</i>udget</span>
@@ -135,7 +135,7 @@ function Se_connecter() {
                       <span className="text-sm text-gray-600 italic cursor-pointer">Mot de Passe oublié ?</span>
                   </div>
               </form>
-              { (!rep!==null ) && <MessageErreur message={rep} onClose={() => setRep(null)} />}
+              { (rep!=="" && rep!==null ) && <MessageErreur message={rep} onClose={() => setRep(null)} />}
           </div>
       </div>
     </section>

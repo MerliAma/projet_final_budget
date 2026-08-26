@@ -18,7 +18,7 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
     const submitFormT = (e) => {
         e.preventDefault()
 
-        const dateEnrg=new Date().toLocaleString()
+        const dateEnrg=new Date()//.toLocaleString()
         //const idUser=RecupInfosUserConnecte().idUser
         const data = { descriptionTrans, montantTrans, dateEnrg, budgetTrans}
 
@@ -32,7 +32,7 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
             if (e) {
                 setListeTransaction([...listeTransaction, data])
                 e ? setRep(true) : setRep(false)
-                formRefT.current.reset() //Renitialise le formulaire
+                formRefT.current.reset() //Reinitialise le formulaire
                 setDescriptionTrans("")
                 setMontantTrans("")
                 setBudgetTrans("")

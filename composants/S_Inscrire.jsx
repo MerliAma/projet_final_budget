@@ -76,12 +76,12 @@ function S_Inscrire() {
             const message = error?.message
             console.log("Erreur: ", message)
 
-            /*setRep(
+            setRep(
                 (message === "Firebase: Error (auth/email-already-in-use).") ? "Email déjà utilisé" :
                     (message === "Firebase: Password should be at least 6 characters (auth/weak-password).") ? "Mot de passe trop court, 6 caractères minimum" :
-                        "Une erreur inconnue s'est produit"
-            )*/
-           setRep(false)
+                        "Une erreur inconnue s'est produite"
+            )
+           //setRep(false)
 
         } finally {
 
@@ -103,7 +103,7 @@ function S_Inscrire() {
     //console.log(listeUsers)
 
     return (
-    <section className="bg-teal-700 h-full w-full absolute">
+    <section className="bg-teal-600 h-full w-full absolute">
         <div className="card bg-base-100/50 w-100 shadow-sm mx-auto my-25" id="MaCarte">
           <figure className="px-10 pt-10 flex flex-col gap-3">
               <button type="button" className="ml-auto flex items-center gap-3 cursor-pointer hover:text-teal-950" id="Sign"><Link href="/">Se Connecter<i className="bi bi-arrow-right "></i></Link></button>
@@ -132,8 +132,8 @@ function S_Inscrire() {
               {/* affichage du message de reponse apres l'ajout d'un user */}
               { rep!==null && (
                 <>
-                    {rep ? <MessageOk message={"Utilisateur ajouté avec succès. Un Mail de confirmation vous a été envoyé."} onClose={() => setRep(null)} /> 
-                    : <MessageErreur message={"Une erreur s'est produite"} onClose={() => setRep(null)} />}
+                    {rep===true ? <MessageOk message={"Utilisateur ajouté avec succès. Un Mail de confirmation vous a été envoyé."} onClose={() => setRep(null)} /> 
+                    : <MessageErreur message={rep} onClose={() => setRep(null)} />}
                 </>
               )}
           </div>
