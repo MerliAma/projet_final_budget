@@ -53,8 +53,8 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
                 <h3 className="font-bold m-3">Mes 10 dernières transactions</h3>
                 {/*<button className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></button>*/}
                 <div className='flex gap-3'>
-                    <Link href={"/Budget"} className='badge badge-lg bg-teal-900 text-white'>Consulter Budget <IoEyeSharp /> </Link>
-                    <Link href={"/Transaction"} className='badge badge-lg bg-teal-900 text-white'>Consulter Transaction <IoEyeSharp /></Link>
+                    <Link href={"/Budget"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Budget <IoEyeSharp /> </Link>
+                    <Link href={"/Transaction"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Transaction <IoEyeSharp /></Link>
                 </div>
             </div>
             <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
