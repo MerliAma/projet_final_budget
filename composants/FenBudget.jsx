@@ -5,6 +5,7 @@ import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
 import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
 import { DeleteToDB } from '@/lib/IndexDB/deleteToDB';
 import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB';
+import GetMesBudgets from '@/mesFonctions/GetMesBudgets';
 
 function FenBudget({listeBudget, setListeBudget}) {
   

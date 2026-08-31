@@ -21,7 +21,7 @@ function FormulaireBudg({listeBudget, setListeBudget, BudgetM}) {
     //On ajoute le budget dans indexDB
     const submitForm = (e) => {
         e.preventDefault()
-        const dateEnrg=new Date().toLocaleString()
+        const dateEnrg=new Date() //.toLocaleString()
         const idUser=RecupInfosUserConnecte().idUser
         const data = { descriptionBud, montantBud, moisBud, dateEnrg, idUser}
 

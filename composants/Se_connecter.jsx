@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'  //a la place de next/router
 import { LuWallet} from 'react-icons/lu'
 import { InitAuth } from '@/firebaseConfig'
 import { GoogleAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
+import GetMesBudgets from '@/mesFonctions/GetMesBudgets'
 
 
 function Se_connecter() {
@@ -14,7 +15,7 @@ function Se_connecter() {
     //const [login, setLogin] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-    const [rep, setRep] = useState(null) //le message de reponse en cas d'erreur...
+    const [rep, setRep] = useState("") //le message de reponse en cas d'erreur...
 
     //Le loader
     const [load, setLoad] = useState(false)
@@ -79,7 +80,8 @@ function Se_connecter() {
             }
 
             //On affiche le message de succès
-            setRep(true)
+            //setRep("ok")
+
             //rediriger vers le tableau de bord
             router.push(`/TableauBord`)
 
@@ -178,7 +180,7 @@ function Se_connecter() {
                           </div>
                       </form>
 
-                      {(rep !== "" && rep !== null) && <MessageErreur message={rep} onClose={() => setRep(null)} />}
+                      {(rep !== "" && rep!==null) && <MessageErreur message={rep} onClose={() => setRep(null)} />}
                   </div>
               </div>
 
