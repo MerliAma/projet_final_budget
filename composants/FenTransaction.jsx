@@ -136,7 +136,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                   <td>{compter++}</td>
                   <td>{laTransUser?.dateEnrg.toLocaleString()}</td>
                   <td>{laTransUser?.descriptionTrans}</td>
-                  <td>{laTransUser?.montantTrans}</td>
+                  <td>{laTransUser?.montantTrans.toLocaleString('fr-FR')}</td>
                   <td>{leBudget?.descriptionBud}</td>
                   <td>{new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</td>
                   <td className='flex items-center gap-3'>

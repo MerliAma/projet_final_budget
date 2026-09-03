@@ -6,6 +6,7 @@ import React, { useState } from 'react'
 
 function BudgetIntermd() {
   const [listeBudget, setListeBudget]=useState([])
+  const [listeTransaction, setListeTransaction]=useState([])
   /*if(!RecupInfosUserConnecte()) {
     useRouter().push("/")
   }*/
@@ -14,7 +15,7 @@ function BudgetIntermd() {
     <div className="p-4">
       <h3 className="font-bold m-3" >Mes Budgets</h3>
       {/* appel du composant contenant une grille pour la fenêtre Budget */}
-      <FenBudget listeBudget={listeBudget} setListeBudget={setListeBudget}/>
+      <FenBudget listeBudget={listeBudget} setListeBudget={setListeBudget} listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} />
     </div>
   )
 }

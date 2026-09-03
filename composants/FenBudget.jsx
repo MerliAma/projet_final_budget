@@ -6,8 +6,9 @@ import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
 import { DeleteToDB } from '@/lib/IndexDB/deleteToDB';
 import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB';
 import GetMesBudgets from '@/mesFonctions/GetMesBudgets';
+import { SommeTransactions } from '@/mesFonctions/SommeMontant';
 
-function FenBudget({listeBudget, setListeBudget}) {
+function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
   
     const [IdUserConnecte, setIdUserConnecte] = useState("")
   //On recupère la liste des Budgets dans indexDb quand le composant est monté (page totalement chargé)
@@ -17,6 +18,9 @@ function FenBudget({listeBudget, setListeBudget}) {
 
         getAllDataTodatabase("budget", (e) => {
             setListeBudget(e)
+        })
+         getAllDataTodatabase("transaction", (e) => {
+            setListeTransaction(e)
         })
 
         //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
@@ -84,7 +88,12 @@ function FenBudget({listeBudget, setListeBudget}) {
                               Budget {leBudget?.descriptionBud}
                             </h2>
                             <p>Mois : {new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</p>
-                            <p>Montant alloué : {leBudget?.montantBud}</p>
+                            <p>Montant alloué : <span className='text-orange-500 text-lg'> {leBudget?.montantBud.toLocaleString('fr-FR')} FCFA</span></p>
+                            <p className='text-gray-800'>{SommeTransactions(leBudget?.id, listeTransaction).Nbr} Transaction(s)   </p>
+                            <p className='text-red-500'>{SommeTransactions(leBudget?.id, listeTransaction).Somme.toLocaleString('fr-FR')} FCFA Dépensé</p> <p className='text-primary'>{(leBudget?.montantBud - SommeTransactions(leBudget?.id, listeTransaction).Somme)} FCFA Restant</p>
+                            
+                            <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={(leBudget?.montantBud - SommeTransactions(leBudget?.id, listeTransaction).Somme)}>%</progress>
+
                             <div className="card-actions justify-end">
                               {/*<label htmlFor="my_modal_6"><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>*/}
                               <button onClick={() => openModal(leBudget)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></button>

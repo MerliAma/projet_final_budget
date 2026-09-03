@@ -57,7 +57,7 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
                     <Link href={"/Transaction"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Transaction <IoEyeSharp /></Link>
                 </div>
             </div>
-            <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100">
+            <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100 shadow-lg">
                 <table className="table">
                     {/* head */}
                     <thead>
@@ -79,14 +79,14 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
                   {listeBudget.map((leBudget,indexB) => (
                     listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id)
                     .slice(0, 10)
-                    .sort((a, b) => Date.parse(b.dateEnrg) - Date.parse(a.dateEnrg))
+                    .sort((a, b) => Date.parse(b.dateEnrg) - Date.parse(a.dateEnrg)) //pr ranger dans l'ordre décroissant des dates
                     .map((laTransUser,indexT) => (
                       <tr key={`${indexB}-${indexT}`}>
                   <td id="num">{compter++}</td>
                   <td>{laTransUser?.dateEnrg.toLocaleString()}</td>
-                  <td>{laTransUser?.descriptionTrans}</td>
-                  <td>{laTransUser?.montantTrans}</td>
-                  <td>{leBudget?.descriptionBud}</td>
+                  <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
+                  <td className='text-red-500'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
+                  <td className=' capitalize font-semibold'>{leBudget?.descriptionBud}</td>
                   <td>{new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</td>
                 </tr>
                     )))
@@ -98,21 +98,23 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
             
             {/* Etiquettes */}
             <div className="grid grid-cols-3 gap-5 my-10">
-                <div className="card bg-base-100 card-lg shadow-sm">
+                <div className="card bg-base-100 card-lg shadow-md shadow-blue-400/80">
                     <div className="card-body"> {/* somme du montant alloué de tous les budgets confondues */}
-                        <h2 className="card-title">{`${SommeMontantBud(listeBudget)} FCFA`}</h2>
+                        <h2 className="card-title">{`${SommeMontantBud(listeBudget).toLocaleString('fr-FR')} FCFA`}</h2>
                         <p>Montant Total alloué</p>
+                        <p>&nbsp;&nbsp;&nbsp; Nombre de Budget: <b>{listeBudget.length}</b></p>
                     </div>
                 </div>
 
-                <div className="card bg-base-100 card-lg shadow-sm">
+                <div className="card bg-base-100 card-lg shadow-md shadow-red-400">
                     <div className="card-body"> {/* somme de toutes les transactions confondues */}
-                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction)} FCFA`}</h2>
+                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction).toLocaleString('fr-FR')} FCFA`}</h2>
                         <p>Total des Transactions</p>
+                        <p>&nbsp;&nbsp;&nbsp; Nombre de Transactions: <b>{listeTransaction.length}</b></p>
                     </div>
                 </div>
 
-                <div className="card bg-base-100 card-lg shadow-sm">
+                <div className="card bg-base-100 card-lg shadow-md shadow-green-400/80">
                     <div className="card-body"> {/* ? */}
                         <h2 className="card-title">0 %</h2>
                         <p>Taux de Réussite</p>
