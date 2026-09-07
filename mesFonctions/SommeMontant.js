@@ -2,7 +2,7 @@ import { getAllDataTodatabase } from "@/lib/IndexDB/getAllDB";
 import { getOneDataTodatabase } from "@/lib/IndexDB/getOneDataToDB";
 
 //somme transactions user
-export const SommeTransactions = (idBudget, listeTransaction) =>{
+export const SommeTransactions = (idBudget, listeTransaction, montantBud) =>{
 
     let LaSomme
     let ObjSomNb
@@ -13,7 +13,8 @@ export const SommeTransactions = (idBudget, listeTransaction) =>{
         LaSomme= TransBud.reduce((accumulateur, LaTrans) => {
             return accumulateur + LaTrans.montantTrans;
         }, 0)
-        ObjSomNb={Nbr: TransBud.length, Somme: LaSomme}
+        let reste = montantBud - LaSomme
+        ObjSomNb={Nbr: TransBud.length, Somme: LaSomme, reste}
 
         return ObjSomNb  //ici je retourne un objet contenant la somme des trans du budget et le nbr de trans du budget
     }

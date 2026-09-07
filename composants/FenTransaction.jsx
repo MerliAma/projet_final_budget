@@ -5,13 +5,15 @@ import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
 import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
 import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB';
 import Link from 'next/link';
+import TableTrans from './TableTrans';
+import { SommeTransactions } from '@/mesFonctions/SommeMontant';
 
 function FenTransaction({listeTransaction, setListeTransaction, listeBudget, setListeBudget}) {
   
   const [IdUserConnecte, setIdUserConnecte] = useState("")
   const [listeBudFiltre, setListeBudFiltre] = useState([]) // pour faire le filtre, ce tableau est filtré et parcouru
 
-  //compteur pour N° d'ordre de tableau
+  //compteur pour N° d'ordre du tableau
   let compter=1
 
     //On recupère la liste des Transactions-Budget dans indexDb quand le composant est monté (page totalement chargé)
@@ -111,7 +113,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
           </div>
 
           <div className=' overflow-x-auto w-full'>
-            <table className="table w-full">
+            <table className="table table-zebra w-full">
               {/* head */}
               <thead>
                 <tr>
@@ -120,6 +122,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                   <th>Description</th>
                   <th>Montant</th>
                   <th>Budget Concerné</th>
+                  <th>Montant alloué Restant</th>
                   <th>Mois</th>
                   <th>Actions</th>
                 </tr>
@@ -135,9 +138,10 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                       <tr key={`${indexB}-${indexT}`}>
                   <td>{compter++}</td>
                   <td>{laTransUser?.dateEnrg.toLocaleString()}</td>
-                  <td>{laTransUser?.descriptionTrans}</td>
-                  <td>{laTransUser?.montantTrans.toLocaleString('fr-FR')}</td>
-                  <td>{leBudget?.descriptionBud}</td>
+                  <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
+                  <td className='bg-orange-400 text-white'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
+                  <td className=' capitalize font-semibold' >{leBudget?.descriptionBud}</td>
+                  <td className=' text-teal-700' >{SommeTransactions(leBudget?.id, listeTransaction, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA</td>
                   <td>{new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</td>
                   <td className='flex items-center gap-3'>
                     {/*<label htmlFor="my_modal_6" ><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>

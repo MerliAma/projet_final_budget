@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import MessageOk from './MessageOk'
 import MessageErreur from './MessageErreur'
 import { UpdateTodatabase } from '@/lib/IndexDB/updateDataToDB'
+import { SommeTransactions } from '@/mesFonctions/SommeMontant'
 
 function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, setListeBudget, TransactionM}) {
   
@@ -26,7 +27,17 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
             return;
         }
 
+        //Pour rechercher le montant restant du budget
+        const MontBud=listeBudget.filter(leBudget => leBudget.id===Number(budgetTrans))[0].montantBud
+        const MontReste=SommeTransactions(budgetTrans, listeTransaction, MontBud).reste
+        
         if(!TransactionM){
+          //Message au cas ou le budget est atteint
+          if(montantTrans>MontReste) {
+            alert("Le montant est supérieur au montant restant du budget sélectionné")
+            return
+          }
+
           //ajout transaction
             AddTodatabase("transaction", data, (e) => {
             if (e) {
@@ -40,7 +51,14 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
             })
         }
         else{
-            //modification transaction
+            //Message au cas ou le budget est atteint
+          const DifferenceMontModif=montantTrans - (listeTransaction.filter(laTrans => laTrans.id===TransactionM.id)[0].montantTrans)
+          if(DifferenceMontModif>0 && DifferenceMontModif>MontReste) {
+            alert("Le montant est supérieur au montant restant du budget sélectionné")
+            return
+          }
+
+          //modification transaction
           UpdateTodatabase("transaction", TransactionM.id, { descriptionTrans, montantTrans, budgetTrans }, (e) => {
             if (!e) return;
 

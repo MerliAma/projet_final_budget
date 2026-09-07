@@ -108,7 +108,7 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
 
                 <div className="card bg-base-100 card-lg shadow-md shadow-red-400">
                     <div className="card-body"> {/* somme de toutes les transactions confondues */}
-                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction).toLocaleString('fr-FR')} FCFA`}</h2>
+                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction,0).toLocaleString('fr-FR')} FCFA`}</h2>
                         <p>Total des Transactions</p>
                         <p>&nbsp;&nbsp;&nbsp; Nombre de Transactions: <b>{listeTransaction.length}</b></p>
                     </div>
