@@ -8,7 +8,7 @@ import { IoEyeSharp } from "react-icons/io5";
 
 function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
 
-    const [IdUserConnecte, setIdUserConnecte] = useState("")
+    //const [IdUserConnecte, setIdUserConnecte] = useState("")
     
     let compter=1
     
@@ -18,13 +18,14 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
         if (typeof window === "undefined") return;
 
         //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
-        setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
+        //setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
+        const IdUserConnecte=RecupInfosUserConnecte()?.idUser
 
         //on filtre les budgets de l'utilisateurs
         getAllDataTodatabase("budget", (e) => {
-            e.filter(leBudget => leBudget.idUser === IdUserConnecte)
-            console.log(e)
-            setListeBudget(e)
+            const ListeBud=e.filter(leBudget => leBudget.idUser === IdUserConnecte)
+            setListeBudget(ListeBud)
+            //console.log(ListeBud,"ama", RecupInfosUserConnecte()?.idUser)
         })
 
         //on recherche les transactions..
@@ -58,7 +59,7 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
                 </div>
             </div>
             <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100 shadow-lg">
-                <table className="table">
+                <table className="table table-zebra">
                     {/* head */}
                     <thead>
                         <tr>
@@ -78,7 +79,7 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
                   <>
                   {listeBudget.map((leBudget,indexB) => (
                     listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id)
-                    .slice(0, 10)
+                    .slice(0, 9)
                     .sort((a, b) => Date.parse(b.dateEnrg) - Date.parse(a.dateEnrg)) //pr ranger dans l'ordre décroissant des dates
                     .map((laTransUser,indexT) => (
                       <tr key={`${indexB}-${indexT}`}>
@@ -108,9 +109,9 @@ const prixTotal = panier.reduce((accumulateur, objetActuel) => {
 
                 <div className="card bg-base-100 card-lg shadow-md shadow-red-400">
                     <div className="card-body"> {/* somme de toutes les transactions confondues */}
-                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction,0).toLocaleString('fr-FR')} FCFA`}</h2>
+                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction,listeBudget,0).toLocaleString('fr-FR')} FCFA`}</h2>
                         <p>Total des Transactions</p>
-                        <p>&nbsp;&nbsp;&nbsp; Nombre de Transactions: <b>{listeTransaction.length}</b></p>
+                        {/*<p>&nbsp;&nbsp;&nbsp; Nombre de Transactions: <b>{listeTransaction.length}</b></p>*/}
                     </div>
                 </div>
 

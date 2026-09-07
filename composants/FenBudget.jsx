@@ -8,11 +8,12 @@ import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB';
 import GetMesBudgets from '@/mesFonctions/GetMesBudgets';
 import { SommeTransactions } from '@/mesFonctions/SommeMontant';
 import { LuEye } from 'react-icons/lu';
+import Link from 'next/link';
 
 function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
   
     const [IdUserConnecte, setIdUserConnecte] = useState("")
-    const [idBuget, setIdBudget]=useState("") //pr afficher les transactions d'un budget dans un popup
+    //const [idBuget, setIdBudget]=useState("") //pr afficher les transactions d'un budget dans un popup
     
   //On recupère la liste des Budgets dans indexDb quand le composant est monté (page totalement chargé)
     useEffect(() => {
@@ -85,7 +86,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
                     {
                       listeBudget?.filter(leBudget => leBudget.idUser===IdUserConnecte).map((leBudget, index)=>(
                       /*listeBudget?.map((leBudget, index)=>(*/
-                        <div key={leBudget?.id || index+1} className="card bg-base-100 shadow-sm" >
+                         <div key={leBudget?.id || index+1} className="card bg-base-100 shadow-sm" >
                           <div className="card-body"> 
                             
                             <div className="p-3 bg-gray-300/50 rounded-md flex flex-col gap-2">
@@ -101,14 +102,14 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
                             <p className='text-lg'> <span className='font-semibold'>Mois :</span> {new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</p>
                             
                             <p className='text-red-500 text-md'>{SommeTransactions(leBudget?.id, listeTransaction).Somme.toLocaleString('fr-FR')} FCFA Dépensé</p> 
-                            <p className='text-primary text-md'>{SommeTransactions(leBudget?.id, listeTransaction, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA Restant</p>
+                            <p className='text-primary text-md'>{SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA Restant</p>
                             
-                            <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={SommeTransactions(leBudget?.id, listeTransaction, leBudget?.montantBud).reste}><span>{((SommeTransactions(leBudget?.id, listeTransaction).Somme)/leBudget?.montantBud)*100}%</span></progress>
+                            <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste}><span>{((SommeTransactions(leBudget?.id, listeTransaction).Somme)/leBudget?.montantBud)*100}%</span></progress>
 
                             <div className="card-actions justify-end justify-items-center">
                               {/*<label htmlFor="my_modal_6"><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>*/}
                               <button onClick={() => openModal(leBudget)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600" title='Modifier Budget'></i></button>
-                              <button><LuEye className='cursor-pointer text-xl text-green-600 mt-1' title='Voir les Transactions'/></button>
+                              <Link href={`/LeBudget/${leBudget?.id}`}> <button><LuEye className='cursor-pointer text-xl text-green-600 mt-1' title='Voir les Transactions'/></button> </Link>
                               <button onClick={() => supprimeBudget(leBudget?.id)}><i className="bi bi-trash-fill cursor-pointer text-lg text-red-600" title='Supprimer Budget'></i></button>
                             </div>
                           </div>

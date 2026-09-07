@@ -2,10 +2,10 @@ import { getAllDataTodatabase } from "@/lib/IndexDB/getAllDB";
 import { getOneDataTodatabase } from "@/lib/IndexDB/getOneDataToDB";
 
 //somme transactions user
-export const SommeTransactions = (idBudget, listeTransaction, montantBud) =>{
+export const SommeTransactions = (idBudget, listeTransaction, listeBudget, montantBud) =>{
 
-    let LaSomme
-    let ObjSomNb
+    let LaSomme=0
+    let ObjSomNb={Nbr: 0, Somme: 0, reste: 0}
 
     if(String(idBudget)!==""){
         //je fais la somme des transactions du budget selectionné
@@ -20,9 +20,17 @@ export const SommeTransactions = (idBudget, listeTransaction, montantBud) =>{
     }
     else{
         //je fais la somme de toutes les transactions de l'user tous mois confondu...
-        LaSomme= listeTransaction.reduce((accumulateur, LaTrans) => {
+
+        //const listeTrans=/*
+        listeBudget.forEach(leBud => {
+            LaSomme += listeTransaction
+                .filter(LaTrans => LaTrans.budgetTrans === String(leBud.id))
+                .reduce((accumulateur, LaTrans) => accumulateur + LaTrans.montantTrans, 0)
+        })
+
+        /*LaSomme= listeTransaction.reduce((accumulateur, LaTrans) => {
             return accumulateur + LaTrans.montantTrans;
-        }, 0)
+        }, 0)*/
         
         return LaSomme  //ici je ne retourne que la somme
     }

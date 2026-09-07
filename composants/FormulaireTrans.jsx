@@ -5,7 +5,7 @@ import MessageErreur from './MessageErreur'
 import { UpdateTodatabase } from '@/lib/IndexDB/updateDataToDB'
 import { SommeTransactions } from '@/mesFonctions/SommeMontant'
 
-function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, setListeBudget, TransactionM}) {
+function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, setListeBudget, TransactionM, fenConcerne}) {
   
     const [descriptionTrans, setDescriptionTrans] = useState(TransactionM?.descriptionTrans || "")
     const [montantTrans, setMontantTrans] = useState(TransactionM?.montantTrans || "")
@@ -29,7 +29,7 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
 
         //Pour rechercher le montant restant du budget
         const MontBud=listeBudget.filter(leBudget => leBudget.id===Number(budgetTrans))[0].montantBud
-        const MontReste=SommeTransactions(budgetTrans, listeTransaction, MontBud).reste
+        const MontReste=SommeTransactions(budgetTrans, listeTransaction, listeBudget, MontBud).reste
         
         if(!TransactionM){
           //Message au cas ou le budget est atteint
@@ -38,7 +38,13 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
             return
           }
 
-          //ajout transaction
+          
+            //mise à jour de budgetTrans si on vient de détails Budget
+            if(fenConcerne!==""){
+              setBudgetTrans(fenConcerne)
+            }
+            
+            //ajout transaction
             AddTodatabase("transaction", data, (e) => {
             if (e) {
                 setListeTransaction([...listeTransaction, data])
@@ -89,7 +95,9 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
           <form ref={formRefT} onSubmit={(e) => submitFormT(e)}>
               <input type='text' value={descriptionTrans} onChange={(e) => setDescriptionTrans(e.target.value)} required name="description" placeholder='Description' className='input w-full mb-3 outline-0 ring-0' />
               <input type="text" value={montantTrans} onChange={(e) => setMontantTrans(Number(e.target.value))} required name="montant" placeholder="Montant" className='input w-full mb-3 outline-0 ring-0' />
+              
               { /* liste des budget de l'user connecté dans le filtre pr les recherches */
+                fenConcerne==="" && (
                 listeBudget?.length>0 ? (
                   <>
                   <select value={budgetTrans} className="ms-auto select select-md w-full outline-0 ring-0" required onChange={(e) => setBudgetTrans(e.target.value)}>
@@ -107,7 +115,7 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
                   <>
                     <select defaultValue="" className="ms-auto select select-md w-full outline-0 ring-0" required></select>
                   </>
-                )
+                ))
               }
               <button className='btn bg-teal-900 text-white mt-5' type='submit'>{!TransactionM ? "Ajouter" : "Modifier"} Transaction <i className="bi bi-plus-lg"></i></button>
               {TransactionM && <button type="button" className='btn ms-5 mt-5' onClick={() => document.getElementById("closeModalTrans")?.click()}>Annuler </button>}
