@@ -4,6 +4,7 @@ import MessageOk from './MessageOk'
 import MessageErreur from './MessageErreur'
 import { UpdateTodatabase } from '@/lib/IndexDB/updateDataToDB'
 import { SommeTransactions } from '@/mesFonctions/SommeMontant'
+import axios from 'axios'
 
 function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, setListeBudget, TransactionM, fenConcerne}) {
   
@@ -16,7 +17,8 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
     //on créé une reference au formulaire
     const formRefT = useRef(null)
 
-    const submitFormT = (e) => {
+    //index DB
+   /* const submitFormT = (e) => {
         e.preventDefault()
 
         const dateEnrg=new Date()//.toLocaleString()
@@ -68,7 +70,7 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
           UpdateTodatabase("transaction", TransactionM.id, { descriptionTrans, montantTrans, budgetTrans }, (e) => {
             if (!e) return;
 
-            //On mets à jours aussi la varible Listebudget en créant d'abord un nouveau tableau avec map
+            //On mets à jours aussi la varible ListeTransaction en créant d'abord un nouveau tableau avec map
             const nouveauTableau = listeTransaction.map(item =>
               item.id === TransactionM.id ? { ...item, descriptionTrans, montantTrans, budgetTrans } : item
             )
@@ -79,7 +81,82 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
           })
         }
         
-    }
+    }*/
+
+    //utilisation de realtime db de firebase
+        const submitFormT = async (e) => {
+            e.preventDefault()
+            try {
+              const data = { descriptionTrans, montantTrans, budgetTrans}
+              if (typeof window === "undefined") {
+                  return;
+              }
+
+              //Pour rechercher le montant restant du budget
+              const MontBud=listeBudget.filter(leBudget => leBudget.id===budgetTrans)[0].montantBud
+              const MontReste=SommeTransactions(budgetTrans, listeTransaction, listeBudget, MontBud).reste
+    
+              if(!TransactionM){
+                //Message au cas ou le budget est atteint
+                if(montantTrans>MontReste) {
+                  alert("Le montant est supérieur au montant restant du budget sélectionné")
+                  return
+                }
+
+                
+                  //mise à jour de budgetTrans si on vient de détails Budget
+                  if(fenConcerne!==""){
+                    setBudgetTrans(fenConcerne)
+                  }
+                  
+                //ajout transaction
+                //On appel notre api backend pour enregistrer le budget
+                const req = await axios.post("/server/transaction/new", data)
+    
+                if(!req?.data) return;
+                if(req?.data.id){
+                  setRep(true)
+                  setListeTransaction([...listeTransaction, {id:req?.data.id, descriptionTrans, montantTrans, budgetTrans}]) //data
+                  setDescriptionTrans("")
+                  setMontantTrans("")
+                  setBudgetTrans("")
+                }
+                else{
+                  setRep(false)
+                } 
+                
+    
+              }
+              else{
+                //Message au cas ou le budget est atteint
+                const DifferenceMontModif=montantTrans - (listeTransaction.filter(laTrans => laTrans.id===TransactionM.id)[0].montantTrans)
+                if(DifferenceMontModif>0 && DifferenceMontModif>MontReste) {
+                  alert("Le montant est supérieur au montant restant du budget sélectionné")
+                  return
+                }
+    
+                //On appel notre api backend pour mettre à jour la transaction
+                const req = await axios.patch(`/server/transaction/updateT/${TransactionM.id}`, data)
+                if(!req?.data) return;
+                if(req?.data.message!== "Modification effectuée") return;
+
+                setRep(true)
+                //On mets à jours aussi la varible ListeTransaction en créant d'abord un nouveau tableau avec map
+                const nouveauTableau = listeTransaction.map(item =>
+                item.id === TransactionM.id ? { ...item, descriptionTrans, montantTrans, budgetTrans } : item
+              )
+
+              setListeTransaction(nouveauTableau)
+              //on ferme le modal
+              document.getElementById("closeModalTrans")?.click()
+              }
+            } 
+            catch (error) {
+              const message = error?.message
+              console.log("Erreur: ", message)
+              setRep(false)
+            }
+          }
 
     //important pour l'actualisation des données et l'affichage ds le cas de la modification
          useEffect(() => {

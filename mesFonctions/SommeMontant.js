@@ -44,19 +44,20 @@ export const SommeTransactions = (idBudget, listeTransaction = [], listeBudget =
     let ObjSomNb = { Nbr: 0, Somme: 0, reste: 0 }
 
     if (String(idBudget) !== "") {
-        let TransBud = (listeTransaction || []).filter(
+        const TransBud = (listeTransaction || []).filter(
             LaTrans => LaTrans.budgetTrans === String(idBudget)
         )
 
         LaSomme = TransBud.reduce((accumulateur, LaTrans) => {
-            return accumulateur + Number(LaTrans.montantTrans || 0)
+            return accumulateur + Number(LaTrans?.montantTrans || 0)
         }, 0)
 
-        let reste = Number(montantBud || 0) - LaSomme
+        const reste = (montantBud || 0) - LaSomme
         ObjSomNb = { Nbr: TransBud.length, Somme: LaSomme, reste }
 
         return ObjSomNb
-    } else {
+    } 
+    else {
         const budgets = Array.isArray(listeBudget) ? listeBudget : []
         const transactions = Array.isArray(listeTransaction) ? listeTransaction : []
 

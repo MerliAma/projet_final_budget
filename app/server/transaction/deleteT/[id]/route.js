@@ -7,7 +7,7 @@ export const DELETE = async (req, { params }) => {
         //On recupère le parametre id
         const { id } = await params 
 
-        // On vérifie si le budget existe
+        // On vérifie si la transaction existe
         const transExiste = await axios.get( `${process.env.db_url}/transaction/${id}.json` )
 
         if (!transExiste.data) {

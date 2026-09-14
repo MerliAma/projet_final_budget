@@ -1,10 +1,11 @@
 "use client"
-import { AddTodatabase } from '@/lib/IndexDB/addToDB'
+//import { AddTodatabase } from '@/lib/IndexDB/addToDB'
 import React, { useEffect, useRef, useState } from 'react'
 import MessageOk from './MessageOk'
 import MessageErreur from './MessageErreur'
 import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte'
-import { UpdateTodatabase } from '@/lib/IndexDB/updateDataToDB'
+//import { UpdateTodatabase } from '@/lib/IndexDB/updateDataToDB'
+import axios from 'axios'
 
 function FormulaireBudg({listeBudget, setListeBudget, BudgetM}) {
 
@@ -19,7 +20,7 @@ function FormulaireBudg({listeBudget, setListeBudget, BudgetM}) {
     const formRef = useRef(null)
 
     //On ajoute le budget dans indexDB
-    const submitForm = (e) => {
+    /*const submitForm = (e) => {
         e.preventDefault()
         const dateEnrg=new Date() //.toLocaleString()
         const idUser=RecupInfosUserConnecte().idUser
@@ -57,7 +58,61 @@ function FormulaireBudg({listeBudget, setListeBudget, BudgetM}) {
             document.getElementById("closeModalBTN")?.click()
           })
         }
-    }
+    }*/
+
+    //utilisation de realtime db de firebase
+    const submitForm = async (e) => {
+        e.preventDefault()
+        try {
+          const idUser=RecupInfosUserConnecte().idUser
+          const data = { descriptionBud, montantBud, moisBud, idUser}
+
+          if (typeof window === "undefined") {
+              return;
+          }
+
+          if(!BudgetM){
+            //ajout budget
+            //On appel notre api backend pour enregistrer le budget
+            const req = await axios.post("/server/budget/new", data)
+
+            if(!req?.data) return;
+            if(req?.data.id){
+              setRep(true)
+              setListeBudget([...listeBudget, {id:req?.data.id, descriptionBud, montantBud, moisBud, idUser}]) //data
+              setMontantBud("")
+              setMoisBud("")
+            }
+            else{
+              setRep(false)
+            } 
+            
+
+          }
+          else{
+            //modification budget
+
+            //On appel notre api backend pour mettre à jour le budget
+            const req = await axios.patch(`/server/budget/updateB/${BudgetM.id}`, data)
+
+            //On mets à jours aussi la varible Listebudget en créant d'abord un nouveau tableau avec map
+            const nouveauTableau = listeBudget.map(item =>
+              item.id === BudgetM.id ? { ...item, descriptionBud, montantBud, moisBud } : item )
+
+            if(!req?.data) return;
+            if(req?.data.message!== "Modification effectuée") return;
+            
+            setListeBudget(nouveauTableau)
+            //on ferme le modal
+            document.getElementById("closeModalBTN")?.click()
+          }
+        } 
+        catch (error) {
+          const message = error?.message
+          //console.log("Erreur: ", message)
+          setRep(false)
+        }
+      }
 
     //important pour l'actualisation des données et l'affichage ds le cas de la modification
      useEffect(() => {

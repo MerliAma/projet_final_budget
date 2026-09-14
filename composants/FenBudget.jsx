@@ -15,7 +15,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
   
     const [IdUserConnecte, setIdUserConnecte] = useState("")
     //const [idBuget, setIdBudget]=useState("") //pr afficher les transactions d'un budget dans un popup
-    
+
   //On recupère la liste des Budgets dans indexDb quand le composant est monté (page totalement chargé)
     useEffect(() => {
 
@@ -29,15 +29,22 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
         })*/
 
         //utilisation de la bd realtime de firebase
-        document.getElementById('RemplirBudTrans').click()
+        //document.getElementById('RemplirBudTrans').click()
 
         //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
         setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
 
     }, [])
 
+    //pour l'utilisation de la bd realtime de firebase
+    useEffect(() => {
+      if (typeof window === "undefined") return;
+      if (!IdUserConnecte) return;
+      GetBudgetTrans();
+      }, [IdUserConnecte]);
+
     //fonction à exécuter pour le remplissage des tableaux de budgets et transactions
-    const GetBudgetTrans = async (setListeBudget, setListeTransaction) => {
+    const GetBudgetTrans = async () => {
         try {
             //On appel notre api backend pour recuperer tous les budgets et transactions
             const req = await axios.get("/server/budget/get-all")
@@ -48,15 +55,15 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
             
             const req2 = await axios.get("/server/transaction/get-all")
             if(req2?.data){
-                setListeTransaction(req?.data.transactions)
+                setListeTransaction(req2?.data.transactions)
             } 
     
         } catch (error) {
            const message = error?.message
            console.log("Erreur: ", message) 
         }
-     }
-
+     } 
+//console.log(SommeTransactions("-P0MXY76XT75Y3lj-M41", listeTransaction,listeBudget,0).Somme)
     //pour ouvrir la fenêtre modal pour la modification en lui donnant la variable budgetModif comme paramètre
     const [budgetModif, setBudgetModif] = useState(null)
     const openModal = (leBudget) => {
@@ -66,10 +73,11 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
         }, 200);
     }
 
-    //On supprime le budget
-    const supprimeBudget = (id) => {
+    //On supprime le budget//avec index DB
+    /*const supprimeBudget = (id) => {
       if (typeof window === "undefined") return;
       //verifier si le budget n'a pas des transactions asoocié //supprimer le string après String(id)
+      //index DB
       getOneDataTodatabase("transaction",{champ:"budgetTrans", valeur:String(id)}, (e) =>{
         if(e) {
           alert("Suppression impossible! Ce budget a des transactions associées")
@@ -78,13 +86,14 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
 
         //dans le cas ou le budget n'a pas encore de transaction on peut le supprimer si l'user confirme
         if (confirm("Voulez-vous supprimer ce Budget ?")) {
+          
             DeleteToDB("budget", id, (e) => {
                 if (!e) {
                     alert("Budget non supprimé. une erreur s'est produite")
                     return;
                 }
 
-                //On retire la tache du tableau js (html)
+                //On retire le budget du tableau js (html)
                 const nouveauTableau = listeBudget.filter(item =>
                     item.id !== id
                 )
@@ -93,12 +102,46 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
             })
         }
       })
-    }
+    }*/
 
+     const supprimeBudget = async(id) => {
+      if (typeof window === "undefined") return;
+
+      //realtime db
+      //je supprime en mm temps les transaction du budget s'il confirme
+      if (confirm("Voulez-vous supprimer ce Budget ? NB: Les transactions du Budget seront aussi supprimées")) {
+        //suppression des transactions
+        /*const req = await axios.get("/server/transaction/get-all")
+        if(!req?.data) return
+
+        if(req?.data){
+          const TransBud=req?.data?.transactions.filter(item => item.budgetTrans===id)
+          //a voir... 
+        }*/
+        
+        //suppression du budget
+        const reqB = await axios.delete(`/server/budget/deleteB/${id}`)
+
+        if(!reqB?.data) return
+        if(reqB?.data?.message==="Budget supprimé"){
+          alert("Budget supprimé avec succès")
+
+          //On retire la tache du tableau js (html)
+          const nouveauTableau = listeBudget.filter(item =>
+            item.id !== id
+          )
+
+          setListeBudget(nouveauTableau);
+        }
+        else{
+          alert("Une erreur s'est produite.")
+        }
+      }
+    }
   
     return (
     <>
-      <button className='hidden' onClick={() => GetBudgetTrans(setListeBudget, setListeTransaction)} id='RemplirBudTrans'></button>
+      <button className='hidden' onClick={() => GetBudgetTrans()} id='RemplirBudTrans'></button>
       {/* La grande grille pour la fenêtre budget*/}
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-3 '>
 
@@ -130,7 +173,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
                             <p className='text-red-500 text-md'>{SommeTransactions(leBudget?.id, listeTransaction).Somme.toLocaleString('fr-FR')} FCFA Dépensé</p> 
                             <p className='text-primary text-md'>{SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA Restant</p>
                             
-                            <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste}><span>{((SommeTransactions(leBudget?.id, listeTransaction).Somme)/leBudget?.montantBud)*100}%</span></progress>
+                            <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={leBudget?.montantBud}><span>{((SommeTransactions(leBudget?.id, listeTransaction).Somme)/leBudget?.montantBud)*100}%</span></progress>
 
                             <div className="card-actions justify-end justify-items-center">
                               {/*<label htmlFor="my_modal_6"><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>*/}

@@ -1,7 +1,8 @@
-import { DeleteToDB } from '@/lib/IndexDB/deleteToDB'
+//import { DeleteToDB } from '@/lib/IndexDB/deleteToDB'
 import React, { useState } from 'react'
 import FormulaireTrans from './FormulaireTrans'
 import { SommeTransactions } from '@/mesFonctions/SommeMontant'
+import axios from 'axios'
 
 function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, listeBudget, setListeBudget, fenConcerne}) {
   
@@ -17,8 +18,8 @@ function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, list
     }, 200);
   }
   
-  //On supprime la transaction
-  const supprimeTrans = (id) => {
+  //On supprime la transaction //IndexDB
+  /*const supprimeTrans = (id) => {
     if (confirm("Voulez-vous supprimer cette Transaction ?")) {
       DeleteToDB("transaction", id, (e) => {
         if (!e) {
@@ -34,7 +35,33 @@ function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, list
         setListeTransaction(nouveauTableau);
       })
     }
-  }
+  }*/
+
+    //Realtime db
+    const supprimeTrans = async(id) => {
+      if (typeof window === "undefined") return;
+
+      //realtime db
+      if (confirm("Voulez-vous supprimer cette transaction ?")) {
+        
+        const reqT = await axios.delete(`/server/transaction/deleteT/${id}`)
+
+        if(!reqT?.data) return
+        if(reqT?.data?.message==="Transaction supprimée"){
+          alert("Transaction supprimée avec succès")
+
+          //On retire la transaction du tableau js (html)
+          const nouveauTableau = listeTransaction.filter(item =>
+            item.id !== id
+          )
+
+          setListeTransaction(nouveauTableau);
+        }
+        else{
+          alert("Une erreur s'est produite.")
+        }
+      }
+    }
   
     return (
     <>
@@ -60,10 +87,10 @@ function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, list
                   //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
                   <>
                   {listeBudFiltre.map((leBudget,indexB) => (
-                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id).map((laTransUser,indexT) => (
+                    listeTransaction.filter(laTrans => laTrans.budgetTrans===leBudget.id).map((laTransUser,indexT) => (
                       <tr key={`${indexB}-${indexT}`}>
                   <td>{compter++}</td>
-                  <td>{laTransUser?.dateEnrg.toLocaleString()}</td>
+                  <td>{new Date(laTransUser?.dateEnrg).toLocaleDateString("fr",{ day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
                   <td className='bg-orange-400 text-white'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
                   <td className=' capitalize font-semibold' >{leBudget?.descriptionBud}</td>

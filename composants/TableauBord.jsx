@@ -23,7 +23,7 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
         setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
         //IdUserConnecte=RecupInfosUserConnecte()?.idUser
 
-        //on filtre les budgets de l'utilisateurs
+        //on filtre les budgets de l'utilisateurs (IndexDB)
         /*getAllDataTodatabase("budget", (e) => {
             const ListeBud=e.filter(leBudget => leBudget.idUser === IdUserConnecte)
             setListeBudget(ListeBud)
@@ -40,10 +40,12 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
         //if(btnClick) console.log(listeBudget)
     }, [])
 
+     //pour l'utilisation de la bd realtime de firebase
     useEffect(() => {
-  if (!IdUserConnecte) return;
-  GetBudgetTrans();
-}, [IdUserConnecte]);
+        if (typeof window === "undefined") return;
+        if (!IdUserConnecte) return;
+        GetBudgetTrans();
+        }, [IdUserConnecte]);
 
     //fonction à exécuter pour le remplissage des tableaux de budgets et transactions
     const GetBudgetTrans = async () => {
@@ -100,13 +102,13 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
                   //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
                   <>
                   {listeBudget.map((leBudget,indexB) => (
-                    listeTransaction.filter(laTrans => Number(laTrans.budgetTrans)===leBudget.id)
+                    listeTransaction.filter(laTrans => laTrans.budgetTrans===leBudget.id) //plus de Number car plus de index DB
                     .slice(0, 9)
                     .sort((a, b) => Date.parse(b.dateEnrg) - Date.parse(a.dateEnrg)) //pr ranger dans l'ordre décroissant des dates
                     .map((laTransUser,indexT) => (
                       <tr key={`${indexB}-${indexT}`}>
                   <td id="num">{compter++}</td>
-                  <td>{laTransUser?.dateEnrg.toLocaleString()}</td>
+                  <td>{new Date(laTransUser?.dateEnrg).toLocaleDateString("fr",{ day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
                   <td className='text-red-500'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
                   <td className=' capitalize font-semibold'>{leBudget?.descriptionBud}</td>
