@@ -2,7 +2,7 @@ import { getAllDataTodatabase } from "@/lib/IndexDB/getAllDB";
 import { getOneDataTodatabase } from "@/lib/IndexDB/getOneDataToDB";
 
 //somme transactions user
-export const SommeTransactions = (idBudget, listeTransaction, listeBudget, montantBud) =>{
+export const SommeTransactionsama = (idBudget, listeTransaction, listeBudget, montantBud) =>{
 
     let LaSomme=0
     let ObjSomNb={Nbr: 0, Somme: 0, reste: 0}
@@ -22,7 +22,7 @@ export const SommeTransactions = (idBudget, listeTransaction, listeBudget, monta
         //je fais la somme de toutes les transactions de l'user tous mois confondu...
 
         //const listeTrans=/*
-        listeBudget.forEach(leBud => {
+        listeBudget.map(leBud => {
             LaSomme += listeTransaction
                 .filter(LaTrans => LaTrans.budgetTrans === String(leBud.id))
                 .reduce((accumulateur, LaTrans) => accumulateur + LaTrans.montantTrans, 0)
@@ -38,12 +38,52 @@ export const SommeTransactions = (idBudget, listeTransaction, listeBudget, monta
     
 }
 
+//fonction corrigée par IA
+export const SommeTransactions = (idBudget, listeTransaction = [], listeBudget = [], montantBud = 0) => {
+    let LaSomme = 0
+    let ObjSomNb = { Nbr: 0, Somme: 0, reste: 0 }
+
+    if (String(idBudget) !== "") {
+        let TransBud = (listeTransaction || []).filter(
+            LaTrans => LaTrans.budgetTrans === String(idBudget)
+        )
+
+        LaSomme = TransBud.reduce((accumulateur, LaTrans) => {
+            return accumulateur + Number(LaTrans.montantTrans || 0)
+        }, 0)
+
+        let reste = Number(montantBud || 0) - LaSomme
+        ObjSomNb = { Nbr: TransBud.length, Somme: LaSomme, reste }
+
+        return ObjSomNb
+    } else {
+        const budgets = Array.isArray(listeBudget) ? listeBudget : []
+        const transactions = Array.isArray(listeTransaction) ? listeTransaction : []
+
+        budgets.forEach(leBud => {
+            LaSomme += transactions
+                .filter(LaTrans => LaTrans.budgetTrans === String(leBud.id))
+                .reduce((accumulateur, LaTrans) => accumulateur + Number(LaTrans.montantTrans || 0), 0)
+        })
+
+        return LaSomme
+    }
+}
+
 //somme montant budget User
-export const SommeMontantBud = (listeBudget) =>{
+export const SommeMontantBudama = (listeBudget) =>{
 
     const SommeBud= listeBudget.reduce((accumulateur, LeBudget) => {
             return accumulateur + LeBudget.montantBud;
         }, 0)
 
     return SommeBud
+}
+
+//fonction corrigée par IA
+export const SommeMontantBud = (listeBudget = []) => {
+    const budgets = Array.isArray(listeBudget) ? listeBudget : []
+    return budgets.reduce((accumulateur, LeBudget) => {
+        return accumulateur + Number(LeBudget.montantBud || 0)
+    }, 0)
 }

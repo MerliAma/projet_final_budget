@@ -2,15 +2,17 @@
 import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
 import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
 import { SommeMontantBud, SommeTransactions } from '@/mesFonctions/SommeMontant';
+import axios from 'axios';
 import Link from 'next/link';
 import React, { useEffect, useState } from 'react'
 import { IoEyeSharp } from "react-icons/io5";
 
 function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
 
-    //const [IdUserConnecte, setIdUserConnecte] = useState("")
+    const [IdUserConnecte, setIdUserConnecte] = useState("")
     
     let compter=1
+    //let IdUserConnecte=""
     
     //On recupère la liste des Transactions-Budget dans indexDb quand le composant est monté (page totalement chargé)
     useEffect(() => {
@@ -18,11 +20,11 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
         if (typeof window === "undefined") return;
 
         //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
-        //setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
-        const IdUserConnecte=RecupInfosUserConnecte()?.idUser
+        setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
+        //IdUserConnecte=RecupInfosUserConnecte()?.idUser
 
         //on filtre les budgets de l'utilisateurs
-        getAllDataTodatabase("budget", (e) => {
+        /*getAllDataTodatabase("budget", (e) => {
             const ListeBud=e.filter(leBudget => leBudget.idUser === IdUserConnecte)
             setListeBudget(ListeBud)
             //console.log(ListeBud,"ama", RecupInfosUserConnecte()?.idUser)
@@ -31,25 +33,45 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
         //on recherche les transactions..
         getAllDataTodatabase("transaction", (e) => {
             setListeTransaction(e)
-        })
-
+        })*/
+       
+       //utilisation de la bd realtime de firebase
+       //const btnClick=document.getElementById('RemplirBudTrans').click()
+        //if(btnClick) console.log(listeBudget)
     }, [])
 
-    /* a voir pr la somme du montant de toutes les transactions, voir si je peux mettre dans une fonction
-    const panier = [
-  { produit: 'Livre', prix: 15 },
-  { produit: 'Stylo', prix: 3 },
-  { produit: 'Sac', prix: 45 }
-];
+    useEffect(() => {
+  if (!IdUserConnecte) return;
+  GetBudgetTrans();
+}, [IdUserConnecte]);
 
-// On initialise l'accumulateur à 0
-const prixTotal = panier.reduce((accumulateur, objetActuel) => {
-  return accumulateur + objetActuel.prix;
-}, 0);
-*/
+    //fonction à exécuter pour le remplissage des tableaux de budgets et transactions
+    const GetBudgetTrans = async () => {
+    try {
+        //On appel notre api backend pour recuperer tous les budgets et transactions
+        const req = await axios.get("/server/budget/get-all")
+        if(req?.data){
+            //setListeBudget(req?.data.budgets)
+            const ListeBud=req?.data.budgets.filter(leBudget => leBudget.idUser === IdUserConnecte)
+            setListeBudget(ListeBud)
+        }  
+        
+        const req2 = await axios.get("/server/transaction/get-all")
+        if(req2?.data){
+            setListeTransaction(req2?.data.transactions)
+        } 
+
+    } catch (error) {
+       const message = error?.message
+       console.log("Erreur: ", message) 
+    }
+ }
 
     return (
     <div className="p-4">
+        {/*Bouton pour l'exécution de mes routes api */}
+        <button className='hidden' onClick={() => GetBudgetTrans()} id='RemplirBudTrans'></button>
+
             <div className='flex flex-col-reverse md:flex-row items-center gap-15 md:justify-between my-5'>
                 <h3 className="font-bold m-3">Mes 10 dernières transactions</h3>
                 {/*<button className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></button>*/}

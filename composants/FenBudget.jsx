@@ -9,6 +9,7 @@ import GetMesBudgets from '@/mesFonctions/GetMesBudgets';
 import { SommeTransactions } from '@/mesFonctions/SommeMontant';
 import { LuEye } from 'react-icons/lu';
 import Link from 'next/link';
+import axios from 'axios';
 
 function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
   
@@ -20,17 +21,41 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
 
         if (typeof window === "undefined") return;
 
-        getAllDataTodatabase("budget", (e) => {
+        /*getAllDataTodatabase("budget", (e) => {
             setListeBudget(e)
         })
          getAllDataTodatabase("transaction", (e) => {
             setListeTransaction(e)
-        })
+        })*/
+
+        //utilisation de la bd realtime de firebase
+        document.getElementById('RemplirBudTrans').click()
 
         //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
         setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
 
     }, [])
+
+    //fonction à exécuter pour le remplissage des tableaux de budgets et transactions
+    const GetBudgetTrans = async (setListeBudget, setListeTransaction) => {
+        try {
+            //On appel notre api backend pour recuperer tous les budgets et transactions
+            const req = await axios.get("/server/budget/get-all")
+            if(req?.data){
+                setListeBudget(req?.data.budgets)
+               
+            }  
+            
+            const req2 = await axios.get("/server/transaction/get-all")
+            if(req2?.data){
+                setListeTransaction(req?.data.transactions)
+            } 
+    
+        } catch (error) {
+           const message = error?.message
+           console.log("Erreur: ", message) 
+        }
+     }
 
     //pour ouvrir la fenêtre modal pour la modification en lui donnant la variable budgetModif comme paramètre
     const [budgetModif, setBudgetModif] = useState(null)
@@ -73,6 +98,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
   
     return (
     <>
+      <button className='hidden' onClick={() => GetBudgetTrans(setListeBudget, setListeTransaction)} id='RemplirBudTrans'></button>
       {/* La grande grille pour la fenêtre budget*/}
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-3 '>
 
