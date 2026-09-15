@@ -17,7 +17,7 @@ function LeBudgetIntermd({idBudget}) {
         if(req?.data){
             //setListeBudget(req?.data.budgets)
             const ListeBudg=[req?.data.budget]  //req?.data.budgets.filter(leBudget => leBudget.id===idBudget) //pr get-all
-            console.log(ListeBudg)
+            //console.log(ListeBudg)
             setListeBud(ListeBudg)
         }  
         

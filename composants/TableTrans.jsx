@@ -90,7 +90,7 @@ function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, list
                     listeTransaction.filter(laTrans => laTrans.budgetTrans===leBudget.id).map((laTransUser,indexT) => (
                       <tr key={`${indexB}-${indexT}`}>
                   <td>{compter++}</td>
-                  <td>{new Date(laTransUser?.dateEnrg).toLocaleDateString("fr",{ day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
+                  <td>{new Date(laTransUser?.dateEnrg).toLocaleDateString("fr-FR",{ day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
                   <td className='bg-orange-400 text-white'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
                   <td className=' capitalize font-semibold' >{leBudget?.descriptionBud}</td>

@@ -87,14 +87,35 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
         const submitFormT = async (e) => {
             e.preventDefault()
             try {
-              const data = { descriptionTrans, montantTrans, budgetTrans}
+              //const data = { descriptionTrans, montantTrans, budgetTrans}
               if (typeof window === "undefined") {
                   return;
               }
 
+              //mise à jour de budgetTrans si on vient de détails Budget 
+              // le state met du temps à s'actualiser donc j'ai modifié
+              /*if(fenConcerne!==""){
+                setBudgetTrans(fenConcerne)
+              }
+
               //Pour rechercher le montant restant du budget
+              //console.log(budgetTrans,"ama")
               const MontBud=listeBudget.filter(leBudget => leBudget.id===budgetTrans)[0].montantBud
-              const MontReste=SommeTransactions(budgetTrans, listeTransaction, listeBudget, MontBud).reste
+              const MontReste=SommeTransactions(budgetTrans, listeTransaction, listeBudget, MontBud).reste*/
+
+              
+              // Utiliser directement la valeur choisie, car setState est asynchrone.
+              const budgetSelectionne = fenConcerne !== "" ? fenConcerne : budgetTrans
+              setBudgetTrans(budgetSelectionne)
+              const data = { descriptionTrans, montantTrans, budgetTrans: budgetSelectionne }
+
+              //Pour rechercher le montant restant du budget
+              const budget = listeBudget.find(leBudget => String(leBudget.id) === String(budgetSelectionne))
+              if (!budget) return;
+
+              const MontBud = budget.montantBud
+              const MontReste = SommeTransactions(budgetSelectionne,listeTransaction,listeBudget,MontBud ).reste
+              
     
               if(!TransactionM){
                 //Message au cas ou le budget est atteint
@@ -102,12 +123,6 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
                   alert("Le montant est supérieur au montant restant du budget sélectionné")
                   return
                 }
-
-                
-                  //mise à jour de budgetTrans si on vient de détails Budget
-                  if(fenConcerne!==""){
-                    setBudgetTrans(fenConcerne)
-                  }
                   
                 //ajout transaction
                 //On appel notre api backend pour enregistrer le budget
@@ -116,7 +131,7 @@ function FormulaireTrans({listeTransaction, setListeTransaction, listeBudget, se
                 if(!req?.data) return;
                 if(req?.data.id){
                   setRep(true)
-                  setListeTransaction([...listeTransaction, {id:req?.data.id, descriptionTrans, montantTrans, budgetTrans}]) //data
+                  setListeTransaction([...listeTransaction, {id:req?.data.id, descriptionTrans, montantTrans, budgetTrans:budgetSelectionne}]) //data
                   setDescriptionTrans("")
                   setMontantTrans("")
                   setBudgetTrans("")

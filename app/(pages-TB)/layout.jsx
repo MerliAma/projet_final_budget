@@ -112,8 +112,9 @@ function layout({children}) {
 
                         
                         <button className="is-drawer-close:tooltip is-drawer-close:tooltip-right ms-5 flex items-center gap-3 cursor-pointer mb-5">
-                            <LuUser />
-                            <span className="is-drawer-close:hidden" >Mon Compte</span>
+                            <Link href={"/Profil"}>
+                                <LuUser /><span className="is-drawer-close:hidden" >Mon Compte</span>
+                            </Link>
                         </button>
                         <button className="is-drawer-close:tooltip is-drawer-close:tooltip-right text-red-600 ms-5 flex items-center gap-3 cursor-pointer mb-5">
                             <LuLogOut />

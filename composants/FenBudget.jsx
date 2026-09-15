@@ -104,6 +104,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
       })
     }*/
 
+      //realtime db
      const supprimeBudget = async(id) => {
       if (typeof window === "undefined") return;
 
@@ -111,13 +112,17 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
       //je supprime en mm temps les transaction du budget s'il confirme
       if (confirm("Voulez-vous supprimer ce Budget ? NB: Les transactions du Budget seront aussi supprimées")) {
         //suppression des transactions
-        /*const req = await axios.get("/server/transaction/get-all")
+        const req = await axios.get("/server/transaction/get-all")
         if(!req?.data) return
 
         if(req?.data){
           const TransBud=req?.data?.transactions.filter(item => item.budgetTrans===id)
           //a voir... 
-        }*/
+          const TabIdTrans=TransBud.map(item => item.id)
+          //appel à ma route delete_many pour supprimer les transactions...
+          const supTrans = await axios.delete("/server/transaction/delete-many", {data: { ids: TabIdTrans }})
+          
+          if(!supTrans?.data) return;
         
         //suppression du budget
         const reqB = await axios.delete(`/server/budget/deleteB/${id}`)
@@ -138,6 +143,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
         }
       }
     }
+  }
   
     return (
     <>
