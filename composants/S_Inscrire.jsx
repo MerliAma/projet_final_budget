@@ -7,6 +7,7 @@ import MessageErreur from './MessageErreur'
 import MessageOk from './MessageOk'
 import { createUserWithEmailAndPassword, sendEmailVerification, updateProfile } from 'firebase/auth'
 import { InitAuth } from '@/firebaseConfig'
+import { LuEye, LuEyeOff, LuLock, LuMail, LuPenLine } from 'react-icons/lu'
 
 function S_Inscrire() {
   
@@ -15,6 +16,7 @@ function S_Inscrire() {
     const [email, setEmail] = useState("")
     const [login, setLogin] = useState("")
     const [password, setPassword] = useState("")
+    const [voirPassword, setVoirPassword]=useState(false)
     const [rep, setRep] = useState(null) //le message de reponse apres l'ajout d'un user
 
     //Le loader
@@ -104,17 +106,38 @@ function S_Inscrire() {
 
     return (
     <section className="bg-teal-600 h-full w-full absolute">
-        <div className="card bg-base-100/50 w-100 shadow-sm mx-auto my-25" id="MaCarte">
+        <div className="card bg-base-100/50 w-150 shadow-sm mx-auto my-25" id="MaCarte">
           <figure className="px-10 pt-10 flex flex-col gap-3">
               <button type="button" className="ml-auto flex items-center gap-3 cursor-pointer hover:text-teal-950" id="Sign"><Link href="/">Se Connecter<i className="bi bi-arrow-right "></i></Link></button>
               <i className="bi bi-person-fill-add text-5xl"></i>
           </figure>
           <div className="card-body items-center text-center">
               <form className="w-full" ref={formRef} onSubmit={(e) => submitForm(e)} >
-                  <input type="text" id="nom" placeholder="Nom Complet" onChange={(e) => setNom(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s] " />
-                  <input type="email" id="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />
-                  {/*<input type="text" id="login" placeholder="Login" onChange={(e) => setLogin(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />*/}
-                  <input type="password" id="password" placeholder="Mot de passe (6 caractères minimum)" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
+                  
+                  <span className='relative'>
+                    <LuPenLine className='text-gray-600 text-lg absolute bottom-0' />
+                    <input type="text" id="nom" placeholder="Nom Complet" onChange={(e) => setNom(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s] " />
+                  </span>
+                  {/*<input type="email" id="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />
+                  <input type="text" id="login" placeholder="Login" onChange={(e) => setLogin(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />
+                  <input type="password" id="password" placeholder="Mot de passe (6 caractères minimum)" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />*/}
+
+                        <span className='relative'>
+                            <LuMail className='text-gray-600 text-lg absolute bottom-0' />
+                            <input type="email" id="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />
+                        </span>
+
+                        <span className='relative'>
+                            <LuLock className='text-gray-600 text-lg absolute bottom-0' />
+                            <input type={voirPassword ? "text" : "password"} id="password" placeholder="Mot de passe (6 caractères minimum)" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
+                            {
+                                voirPassword ?
+                                    <LuEye onClick={() => setVoirPassword(false)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
+                                    :
+                                    <LuEyeOff onClick={() => setVoirPassword(true)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
+                            }
+                        </span>
+                        
                   <div className="flex items-center justify-between">
                       <button type={!load ? "submit" : "button"} disabled={load} id="Connexion" className="btn bg-teal-800 hover:bg-teal-900 text-white font-semibold py-2 px-6 rounded-lg transition transform duration-200 hover:scale-105 active:scale-95 shadow-lg hover:animate-none focus:outline-none focus:ring-2 focus:ring-indigo-300">
                         

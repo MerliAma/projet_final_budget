@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB'
 import MessageErreur from './MessageErreur'
 import { useRouter } from 'next/navigation'  //a la place de next/router
-import { LuWallet} from 'react-icons/lu'
+import { LuEye, LuEyeOff, LuLock, LuMail, LuWallet} from 'react-icons/lu'
 import { InitAuth } from '@/firebaseConfig'
 import { GoogleAuthProvider, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup } from 'firebase/auth'
 import GetMesBudgets from '@/mesFonctions/GetMesBudgets'
@@ -15,6 +15,7 @@ function Se_connecter() {
     //const [login, setLogin] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
+    const [voirPassword, setVoirPassword]=useState(false) 
     const [rep, setRep] = useState("") //le message de reponse en cas d'erreur...
 
     //Le loader
@@ -144,7 +145,7 @@ function Se_connecter() {
 
   return (
       <section className="bg-teal-600 h-full w-full absolute">
-          <div className='bg-base-100/50 shadow-sm mx-5 lg:mx-60 mt-10 p-5 lg:p-10 rounded-t-full'>
+          <div className='bg-base-100/50 shadow-sm mx-5 lg:mx-50 mt-10 p-5 lg:p-10 rounded-t-full'>
               <div className="flex items-center justify-center gap-2 ms-2">
                   <LuWallet className='text-teal-900 text-5xl' />
                   <span className='text-4xl text-teal-900 font-bold'><i>T</i>op<i>B</i>udget</span>
@@ -152,7 +153,7 @@ function Se_connecter() {
               <span className='flex justify-center mt-3 text-lg space-x-6 text-teal-900 italic'>- Ma Gestion de Budget simplifée -</span>
           </div>
 
-          <div className='grid grid-cols-1 lg:grid-cols-2 card bg-base-100/50 mx-5 lg:mx-60 shadow-sm mb-10 mt-5'>
+          <div className='grid grid-cols-1 lg:grid-cols-2 card bg-base-100/50 mx-5 lg:mx-50 shadow-sm mb-10 mt-5'>
               
               {/* Formulaire de connexion */}
               <div className="border-0 lg:border-e lg:border-e-gray-600" id="MaCarte">
@@ -163,8 +164,22 @@ function Se_connecter() {
                   <div className="card-body items-center text-center">
                       <form className="w-full" ref={formRef} onSubmit={(e) => submitForm(e)}>
                           {/*<input type="text" id="login" placeholder="login" onChange={(e) => setLogin(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0" />*/}
-                          <input type="email" id="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />
-                          <input type="password" id="password" placeholder="Mot de passe" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-2 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0" />
+                          <span className='relative'>
+                            <LuMail className='text-gray-600 text-lg absolute bottom-0' />
+                            <input type="email" id="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s]" />
+                          </span>
+
+                          <span className='relative'>
+                            <LuLock className='text-gray-600 text-lg absolute bottom-0' />
+                            <input type={voirPassword ? "text" : "password"} id="password" placeholder="Mot de passe" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
+                            {
+                                voirPassword ?
+                                <LuEye onClick={()=>setVoirPassword(false)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
+                                :
+                                <LuEyeOff onClick={()=>setVoirPassword(true)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
+                            }
+                          </span>
+                          
                           <div className="flex items-center justify-between">
                               <button type={!load ? "submit" : "button"} disabled={load} id="Connexion" className="btn bg-teal-800 hover:bg-teal-900 text-white font-semibold py-2 px-6 rounded-lg transition transform duration-200 hover:scale-105 active:scale-95 shadow-lg hover:animate-none focus:outline-none focus:ring-2 focus:ring-indigo-300">
                                   {!load ? (
@@ -186,9 +201,13 @@ function Se_connecter() {
 
               {/* s'inscrire et btn Google connexion */}
               <div className='flex flex-col gap-1 lg:gap-3 justify-center lg:mt-15 mx-auto p-5'>
-                <span className='flex items-center justify-center gap-2 text-md'>
+                {/*<span className='flex items-center justify-center gap-2 text-md'>
                     <span className='flex lg:hidden'>Pas de compte? </span>
                     <span className='hidden lg:flex'>Vous n'avez pas de compte?</span> <Link href="/Inscription" className="cursor-pointer hover:text-teal-950 font-bold" id="Sign" >Inscrivez-vous Ici</Link>
+                </span> */}
+
+                <span className=' wrap-normal'>
+                    <span className=''>Vous n'avez pas de compte?</span> <Link href="/Inscription" className="cursor-pointer hover:text-teal-950 font-bold" id="Sign" >Inscrivez-vous Ici</Link>
                 </span>
                 
                 <div className='flex items-center justify-center gap-2'>

@@ -8,7 +8,7 @@ function TransactionIntermd() {
 
   return (
     <div className="p-4">
-      <h3 className="font-bold m-3" >Mes Transactions</h3>
+      <h3 className="font-bold mb-10" >Mes Transactions</h3>
       {/* appel du composant contenant une grille pour la fenêtre transaction */}
       <FenTransaction listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} listeBudget={listeBudget} setListeBudget={setListeBudget} />
     </div>

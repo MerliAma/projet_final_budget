@@ -1,9 +1,10 @@
+import ProfilInterm from '@/composants/ProfilInterm'
 import React from 'react'
 
 function page() {
   return (
-    <div>
-      <h1>Mon Profil</h1>
+    <div className="p-4">
+      <ProfilInterm />
     </div>
   )
 }

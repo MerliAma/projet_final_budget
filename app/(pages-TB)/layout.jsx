@@ -111,8 +111,8 @@ function layout({children}) {
                         </ul>
 
                         
-                        <button className="is-drawer-close:tooltip is-drawer-close:tooltip-right ms-5 flex items-center gap-3 cursor-pointer mb-5">
-                            <Link href={"/Profil"}>
+                        <button className="is-drawer-close:tooltip is-drawer-close:tooltip-right cursor-pointer ">
+                            <Link href={"/Profil"} className='ms-5 flex items-center gap-3 mb-5'>
                                 <LuUser /><span className="is-drawer-close:hidden" >Mon Compte</span>
                             </Link>
                         </button>

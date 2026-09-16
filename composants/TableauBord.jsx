@@ -75,7 +75,7 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
         <button className='hidden' onClick={() => GetBudgetTrans()} id='RemplirBudTrans'></button>
 
             <div className='flex flex-col-reverse md:flex-row items-center gap-15 md:justify-between my-5'>
-                <h3 className="font-bold m-3">Mes 10 dernières transactions</h3>
+                <h3 className="font-bold mb-10">Mes 10 dernières transactions</h3>
                 {/*<button className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></button>*/}
                 <div className='flex gap-3'>
                     <Link href={"/Budget"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Budget <IoEyeSharp /> </Link>

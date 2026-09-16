@@ -49,7 +49,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
             //On appel notre api backend pour recuperer tous les budgets et transactions
             const req = await axios.get("/server/budget/get-all")
             if(req?.data){
-                setListeBudget(req?.data.budgets)
+                setListeBudget(req?.data.budgets.filter(leBudget => leBudget.idUser===IdUserConnecte))
                
             }  
             
@@ -159,7 +159,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
             listeBudget?.length>0 ? (
                 <>
                     {
-                      listeBudget?.filter(leBudget => leBudget.idUser===IdUserConnecte).map((leBudget, index)=>(
+                      listeBudget?.map((leBudget, index)=>(
                       /*listeBudget?.map((leBudget, index)=>(*/
                          <div key={leBudget?.id || index+1} className="card bg-base-100 shadow-sm" >
                           <div className="card-body"> 
