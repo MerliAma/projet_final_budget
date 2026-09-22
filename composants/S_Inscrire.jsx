@@ -16,7 +16,9 @@ function S_Inscrire() {
     const [email, setEmail] = useState("")
     const [login, setLogin] = useState("")
     const [password, setPassword] = useState("")
+    const [password2, setPassword2] = useState("")
     const [voirPassword, setVoirPassword]=useState(false)
+    const [voirPassword2, setVoirPassword2]=useState(false)
     const [rep, setRep] = useState(null) //le message de reponse apres l'ajout d'un user
 
     //Le loader
@@ -56,6 +58,12 @@ function S_Inscrire() {
         try {
 
             setLoad(true) //On active le loader du bouton
+
+            //verification confirmation
+            if(password !== password2){
+                setRep("Les mots de passe sont différents!")
+                return
+            }
 
             //code pour fireBase Authentication
             //On ajoute le users dans firebase
@@ -106,9 +114,9 @@ function S_Inscrire() {
 
     return (
     <section className="bg-teal-600 h-full w-full absolute">
-        <div className="card bg-base-100/50 w-150 shadow-sm mx-auto my-25" id="MaCarte">
+        <div className="card bg-base-100/50 mx-5 lg:mx-50 shadow-sm my-25" id="MaCarte">
           <figure className="px-10 pt-10 flex flex-col gap-3">
-              <button type="button" className="ml-auto flex items-center gap-3 cursor-pointer hover:text-teal-950" id="Sign"><Link href="/">Se Connecter<i className="bi bi-arrow-right "></i></Link></button>
+              {/*<button type="button" className="ml-auto flex items-center gap-3 cursor-pointer hover:text-teal-950" id="Sign"><Link href="/">Se Connecter<i className="bi bi-arrow-right "></i></Link></button>*/}
               <i className="bi bi-person-fill-add text-5xl"></i>
           </figure>
           <div className="card-body items-center text-center">
@@ -137,6 +145,16 @@ function S_Inscrire() {
                                     <LuEyeOff onClick={() => setVoirPassword(true)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
                             }
                         </span>
+                        <span className='relative'>
+                            <LuLock className='text-gray-600 text-lg absolute bottom-0' />
+                            <input type={voirPassword2 ? "text" : "password"} id="password2" placeholder=" Confirmation Mot de passe" onChange={(e) => setPassword2(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
+                            {
+                                voirPassword2 ?
+                                    <LuEye onClick={() => setVoirPassword2(false)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
+                                    :
+                                    <LuEyeOff onClick={() => setVoirPassword2(true)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
+                            }
+                        </span>
                         
                   <div className="flex items-center justify-between">
                       <button type={!load ? "submit" : "button"} disabled={load} id="Connexion" className="btn bg-teal-800 hover:bg-teal-900 text-white font-semibold py-2 px-6 rounded-lg transition transform duration-200 hover:scale-105 active:scale-95 shadow-lg hover:animate-none focus:outline-none focus:ring-2 focus:ring-indigo-300">
@@ -152,6 +170,11 @@ function S_Inscrire() {
                       </button>
                   </div>
               </form>
+
+              <span className=' wrap-normal'>
+                <span className=''>Vous avez déjà un compte?</span> <Link href="/"  className="text-lg cursor-pointer hover:text-teal-950 font-bold transform duration-200 hover:scale-105 active:scale-95 shadow-lg hover:animate-none focus:outline-none" id="" >Connectez-vous Ici</Link>
+              </span>
+
               {/* affichage du message de reponse apres l'ajout d'un user */}
               { rep!==null && (
                 <>

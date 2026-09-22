@@ -167,7 +167,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
                             <div className="p-3 bg-gray-300/50 rounded-md flex flex-col gap-2">
                               
                               <div className='flex justify-items-center justify-between'>
-                                <h2 className="card-title">Budget {leBudget?.descriptionBud}</h2>
+                                <h2 className="card-title capitalize">Budget {leBudget?.descriptionBud}</h2>
                                 <span className='text-orange-500 text-lg'> {leBudget?.montantBud.toLocaleString('fr-FR')} FCFA</span>
                               </div>
                               <p className='text-gray-800'>{SommeTransactions(leBudget?.id, listeTransaction).Nbr} Transaction(s)   </p>
@@ -183,8 +183,8 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
 
                             <div className="card-actions justify-end justify-items-center">
                               {/*<label htmlFor="my_modal_6"><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>*/}
-                              <button onClick={() => openModal(leBudget)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600" title='Modifier Budget'></i></button>
                               <Link href={`/LeBudget/${leBudget?.id}`}> <button><LuEye className='cursor-pointer text-xl text-green-600 mt-1' title='Voir les Transactions'/></button> </Link>
+                              <button onClick={() => openModal(leBudget)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600" title='Modifier Budget'></i></button>
                               <button onClick={() => supprimeBudget(leBudget?.id)}><i className="bi bi-trash-fill cursor-pointer text-lg text-red-600" title='Supprimer Budget'></i></button>
                             </div>
                           </div>

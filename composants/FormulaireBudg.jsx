@@ -80,6 +80,7 @@ function FormulaireBudg({listeBudget, setListeBudget, BudgetM}) {
             if(req?.data.id){
               setRep(true)
               setListeBudget([...listeBudget, {id:req?.data.id, descriptionBud, montantBud, moisBud, idUser}]) //data
+              setDescriptionBud("")
               setMontantBud("")
               setMoisBud("")
             }

@@ -74,14 +74,43 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
         {/*Bouton pour l'exécution de mes routes api */}
         <button className='hidden' onClick={() => GetBudgetTrans()} id='RemplirBudTrans'></button>
 
-            <div className='flex flex-col-reverse md:flex-row items-center gap-15 md:justify-between my-5'>
-                <h3 className="font-bold mb-10">Mes 10 dernières transactions</h3>
+            <div className='flex flex-col md:flex-row items-center gap-10 md:justify-between my-5'>
+                <h3 className="font-bold ">Tableau de Bord</h3>
                 {/*<button className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></button>*/}
                 <div className='flex gap-3'>
                     <Link href={"/Budget"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Budget <IoEyeSharp /> </Link>
                     <Link href={"/Transaction"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Transaction <IoEyeSharp /></Link>
                 </div>
             </div>
+
+            {/* Etiquettes */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 my-10">
+                <div className="card bg-base-100 card-lg shadow-md shadow-blue-400/80">
+                    <div className="card-body"> {/* somme du montant alloué de tous les budgets confondues */}
+                        <h2 className="card-title">{`${SommeMontantBud(listeBudget).toLocaleString('fr-FR')} FCFA`}</h2>
+                        <p>Montant Total alloué</p>
+                        <p>&nbsp;&nbsp;&nbsp; Nombre de Budget: <b>{listeBudget.length}</b></p>
+                    </div>
+                </div>
+
+                <div className="card bg-base-100 card-lg shadow-md shadow-red-400">
+                    <div className="card-body"> {/* somme de toutes les transactions confondues */}
+                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction,listeBudget,0).toLocaleString('fr-FR')} FCFA`}</h2>
+                        <p>Montant Total des Transactions</p>
+                        {/*<p>&nbsp;&nbsp;&nbsp; Nombre de Transactions: <b>{listeTransaction.length}</b></p>*/}
+                    </div>
+                </div>
+
+                <div className="card bg-base-100 card-lg shadow-md shadow-green-400/80">
+                    <div className="card-body"> {/* ? */}
+                        <h2 className="card-title">0 %</h2>
+                        <p>Taux de Réussite</p>
+                    </div>
+                </div>
+            </div>
+
+            {/* Tableau transactions */}
+            <h3 className="font-bold mb-10">Mes 10 dernières transactions</h3>
             <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100 shadow-lg">
                 <table className="table table-zebra">
                     {/* head */}
@@ -96,7 +125,7 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
                         </tr>
                     </thead>
                     <tbody>
-                        {/* Liste de toutes les transactions de l'user  */}
+                        {/* Liste des 10 dernières transactions de l'user  */}
                 {
                   (listeBudget?.length>0 && listeTransaction?.length>0 ) && 
                   //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
@@ -121,31 +150,6 @@ function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTra
                 </table>
             </div>
             
-            {/* Etiquettes */}
-            <div className="grid grid-cols-3 gap-5 my-10">
-                <div className="card bg-base-100 card-lg shadow-md shadow-blue-400/80">
-                    <div className="card-body"> {/* somme du montant alloué de tous les budgets confondues */}
-                        <h2 className="card-title">{`${SommeMontantBud(listeBudget).toLocaleString('fr-FR')} FCFA`}</h2>
-                        <p>Montant Total alloué</p>
-                        <p>&nbsp;&nbsp;&nbsp; Nombre de Budget: <b>{listeBudget.length}</b></p>
-                    </div>
-                </div>
-
-                <div className="card bg-base-100 card-lg shadow-md shadow-red-400">
-                    <div className="card-body"> {/* somme de toutes les transactions confondues */}
-                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction,listeBudget,0).toLocaleString('fr-FR')} FCFA`}</h2>
-                        <p>Total des Transactions</p>
-                        {/*<p>&nbsp;&nbsp;&nbsp; Nombre de Transactions: <b>{listeTransaction.length}</b></p>*/}
-                    </div>
-                </div>
-
-                <div className="card bg-base-100 card-lg shadow-md shadow-green-400/80">
-                    <div className="card-body"> {/* ? */}
-                        <h2 className="card-title">0 %</h2>
-                        <p>Taux de Réussite</p>
-                    </div>
-                </div>
-            </div>
         </div>
   )
 }

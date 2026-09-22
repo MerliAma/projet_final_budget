@@ -92,7 +92,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
 
       <div className='grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-3 '>
 
-        <div className='border border-gray-300 p-3'>
+        <div className='border border-gray-300 p-3 my-auto'>
           <FormulaireTrans listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} listeBudget={listeBudget} setListeBudget={setListeBudget} fenConcerne={""} />
         </div>
 
@@ -106,7 +106,7 @@ function FenTransaction({listeTransaction, setListeTransaction, listeBudget, set
                     <option value="" >Toutes les transactions</option>
                     {
                       listeBudget?.map(leBudget => (
-                        <option value={leBudget?.id} key={leBudget?.id}>{leBudget?.descriptionBud}</option>
+                        <option value={leBudget?.id} key={leBudget?.id} className='capitalize'>{leBudget?.descriptionBud}</option>
                       ))
                     }
                     </select>

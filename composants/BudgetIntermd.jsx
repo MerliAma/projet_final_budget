@@ -1,7 +1,5 @@
 "use client"
 import FenBudget from '@/composants/FenBudget';
-import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
-//import { useRouter } from 'next/navigation';
 import React, { useState } from 'react'
 
 function BudgetIntermd() {
