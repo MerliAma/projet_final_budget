@@ -65,7 +65,7 @@ function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, list
   
     return (
     <>
-    <div className=' overflow-x-auto w-full'>
+    <div className=' overflow-x-auto w-full rounded-box border border-base-content/5 bg-base-100 shadow-lg'>
             <table className="table table-zebra w-full">
               {/* head */}
               <thead>
@@ -92,7 +92,7 @@ function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, list
                   <td>{compter++}</td>
                   <td>{new Date(laTransUser?.dateEnrg).toLocaleDateString("fr-FR",{ day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
                   <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
-                  <td className='bg-orange-400 text-white'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
+                  <td className='bg-orange-400 text-white text-nowrap'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
                   <td className=' capitalize font-semibold' >{leBudget?.descriptionBud}</td>
                   <td className=' text-teal-700' >{SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA</td>
                   <td>{new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</td>

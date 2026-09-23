@@ -1,11 +1,15 @@
 "use client"
-import { EmailAuthProvider, getAuth, onAuthStateChanged, reauthenticateWithCredential, updatePassword } from 'firebase/auth'
+import { EmailAuthProvider, getAuth, onAuthStateChanged, reauthenticateWithCredential, updatePassword, updateProfile } from 'firebase/auth'
 import React, { useEffect, useRef, useState } from 'react'
 import { LuEye, LuEyeOff, LuLock, LuMail, LuPenLine, LuUser } from 'react-icons/lu'
+import MessageOk from './MessageOk'
+import MessageErreur from './MessageErreur'
+import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte'
 
 function Profil() {
   
   const [nom, setNom] = useState("")
+  const [newMail, setNewEmail] = useState("")
   const [password, setPassword] = useState("") //ancien password
   const [password2, setPassword2] = useState("") //nouveau password
   const [voirPassword, setVoirPassword]=useState(false)
@@ -29,8 +33,16 @@ function Profil() {
 
     onAuthStateChanged(auth, (user) => {
       const emailUser = user ? user.email : ""
-      document.getElementById("email").value = emailUser
-      document.getElementById("nom1").value = user ? user.displayName : ""
+      const nomUser = user ? user.displayName : ""
+      
+      const docEmail=document.getElementById("email")
+      const docNom=document.getElementById("nom1")
+      
+      //document.getElementById("nom1").value = user ? user.displayName : ""
+      if(docEmail) docEmail.value = emailUser
+      if(docNom) docNom.value=nomUser
+      setNewEmail(emailUser)
+      setNom(nomUser)
     })
 
   }, [])
@@ -53,28 +65,42 @@ function Profil() {
         password
       );
       await reauthenticateWithCredential(user, credential);
+      //modifier mot de passe
       await updatePassword(user, password2);
+      //modifier l'email en envoyant un mail de vérification
+      if(user.email!==newMail){
+        await verifyBeforeUpdateEmail(user, newMail);  //sensible!
+        setNewEmail(user.email)
+        console.log("ok")
+      }
+      
 
       //on met à jour maintenant le nom
       await updateProfile(user, {
         displayName: nom
       })
 
+      //modifier les infosUser dans le localStorage
+      const idUser=RecupInfosUserConnecte()?.idUser 
+      const nomUser=nom
+      localStorage.setItem("InfosUser", JSON.stringify({idUser, nomUser}))
+
       //On affiche le message de succès
       setRep(true)
-      formRef.current.reset() //Renitialise le formulaire
+      //formRef.current.reset() //Renitialise le formulaire
+      setPassword("")
+      setPassword2("")
 
     } catch (error) {
 
       const message = error?.message
-      console.log("Erreur: ", message)
+      //console.log("Erreur: ", message)
 
-      /*setRep(
-          (message === "Firebase: Error (auth/email-already-in-use).") ? "Email déjà utilisé" :
-              (message === "Firebase: Password should be at least 6 characters (auth/weak-password).") ? "Mot de passe trop court, 6 caractères minimum" :
+      setRep(
+          (message === "Firebase: Error (auth/invalid-credential).") ? "Mot(s) de passe invalide(s)" :
                   "Une erreur inconnue s'est produite"
-      )*/
-      //setRep(false)
+      )
+      //setRep("Une erreur s'est produite!")
 
     } finally {
 
@@ -108,12 +134,17 @@ function Profil() {
 
           <span className='relative'>
             <LuPenLine className='text-gray-600 text-lg absolute bottom-0' />
-            <input type="text" id="nom" placeholder="Nom Complet" onChange={(e) => setNom(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s] " />
+            <input type="text" id="nom" value={nom} placeholder="Nom Complet" onChange={(e) => setNom(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s] " />
+          </span>
+
+          <span className='relative'>
+            <LuMail className='text-gray-600 text-lg absolute bottom-0' />
+            <input type="email" id="newMail" value={newMail} placeholder="Nouvel Email" onChange={(e) => setNewEmail(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 bg-transparent autofill:bg-transparent autofill:transition-colors autofill:duration-[5000000s] " />
           </span>
 
           <span className='relative'>
             <LuLock className='text-gray-600 text-lg absolute bottom-0' />
-            <input type={voirPassword ? "text" : "password"} id="password" placeholder="Ancien Mot de passe" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
+            <input type={voirPassword ? "text" : "password"} id="password" value={password} placeholder="Ancien Mot de passe" onChange={(e) => setPassword(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
             {
               voirPassword ?
                 <LuEye onClick={() => setVoirPassword(false)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
@@ -124,7 +155,7 @@ function Profil() {
 
            <span className='relative'>
             <LuLock className='text-gray-600 text-lg absolute bottom-0' />
-            <input type={voirPassword2 ? "text" : "password"} id="password2" placeholder="Nouveau Mot de passe (6 caractères minimum)" onChange={(e) => setPassword2(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
+            <input type={voirPassword2 ? "text" : "password"} id="password2" value={password2} placeholder="Nouveau Mot de passe (6 caractères minimum)" onChange={(e) => setPassword2(e.target.value)} required className="w-full h-8 py-5 px-7 mb-5 border-b border-b-gray-500 text-lg outline-0 ring-0 focus:outline-0 focus:ring-0 " />
             {
               voirPassword2 ?
                 <LuEye onClick={() => setVoirPassword2(false)} className='text-gray-600 text-lg absolute bottom-0 right-0 cursor-pointer' />
@@ -146,6 +177,13 @@ function Profil() {
             </button>
           </div>
         </form>
+        {/* affichage du message de reponse apres l'ajout d'un user */}
+              { rep!==null && (
+                <>
+                    {rep===true ? <MessageOk message={"Modifications effectuées avec succès! Si l'Email a été modifié, veuillez valider la confirmation dans votre boîte mail"} onClose={() => setRep(null)} /> 
+                    : <MessageErreur message={rep} onClose={() => setRep(null)} />}
+                </>
+              )}
       </div>
     </div>
   )

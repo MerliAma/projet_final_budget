@@ -145,7 +145,7 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
     }
   }
   
-    return (
+  return (
     <>
       <button className='hidden' onClick={() => GetBudgetTrans()} id='RemplirBudTrans'></button>
       {/* La grande grille pour la fenêtre budget*/}
@@ -155,55 +155,55 @@ function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTrans
           {/* Les cartes pour présenter les différents budgets dans une grille - lié à la BASE DE DONNEES */}
 
           <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-2 '>
-          {
-            listeBudget?.length>0 ? (
+            {
+              listeBudget?.length > 0 ? (
                 <>
-                    {
-                      listeBudget?.map((leBudget, index)=>(
+                  {
+                    listeBudget?.map((leBudget, index) => (
                       /*listeBudget?.map((leBudget, index)=>(*/
-                         <div key={leBudget?.id || index+1} className="card bg-base-100 shadow-sm" >
-                          <div className="card-body"> 
-                            
-                            <div className="p-3 bg-gray-300/50 rounded-md flex flex-col gap-2">
-                              
-                              <div className='flex justify-items-center justify-between'>
-                                <h2 className="card-title capitalize">Budget {leBudget?.descriptionBud}</h2>
-                                <span className='text-orange-500 text-lg'> {leBudget?.montantBud.toLocaleString('fr-FR')} FCFA</span>
-                              </div>
-                              <p className='text-gray-800'>{SommeTransactions(leBudget?.id, listeTransaction).Nbr} Transaction(s)   </p>
-                            
-                            </div>
+                      <div key={leBudget?.id || index + 1} className="card bg-base-100 shadow-sm" >
+                        <div className="card-body">
 
-                            <p className='text-lg'> <span className='font-semibold'>Mois :</span> {new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</p>
-                            
-                            <p className='text-red-500 text-md'>{SommeTransactions(leBudget?.id, listeTransaction).Somme.toLocaleString('fr-FR')} FCFA Dépensé</p> 
-                            <p className='text-primary text-md'>{SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA Restant</p>
-                            
-                            <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={leBudget?.montantBud}><span>{((SommeTransactions(leBudget?.id, listeTransaction).Somme)/leBudget?.montantBud)*100}%</span></progress>
+                          <div className="p-3 bg-gray-300/50 rounded-md flex flex-col gap-2">
 
-                            <div className="card-actions justify-end justify-items-center">
-                              {/*<label htmlFor="my_modal_6"><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>*/}
-                              <Link href={`/LeBudget/${leBudget?.id}`}> <button><LuEye className='cursor-pointer text-xl text-green-600 mt-1' title='Voir les Transactions'/></button> </Link>
-                              <button onClick={() => openModal(leBudget)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600" title='Modifier Budget'></i></button>
-                              <button onClick={() => supprimeBudget(leBudget?.id)}><i className="bi bi-trash-fill cursor-pointer text-lg text-red-600" title='Supprimer Budget'></i></button>
+                            <div className='flex justify-items-center justify-between'>
+                              <h2 className="card-title capitalize">Budget {leBudget?.descriptionBud}</h2>
+                              <span className='text-orange-500 text-lg'> {leBudget?.montantBud.toLocaleString('fr-FR')} FCFA</span>
                             </div>
+                            <p className='text-gray-800'>{SommeTransactions(leBudget?.id, listeTransaction).Nbr} Transaction(s)   </p>
+
+                          </div>
+
+                          <p className='text-lg'> <span className='font-semibold'>Mois :</span> {new Date(leBudget?.moisBud).toLocaleDateString("fr", { month: "long", year: "numeric" })}</p>
+
+                          <p className='text-red-500 text-md'>{SommeTransactions(leBudget?.id, listeTransaction).Somme.toLocaleString('fr-FR')} FCFA Dépensé</p>
+                          <p className='text-primary text-md'>{SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA Restant</p>
+
+                          <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={leBudget?.montantBud}><span>{((SommeTransactions(leBudget?.id, listeTransaction).Somme) / leBudget?.montantBud) * 100}%</span></progress>
+
+                          <div className="card-actions justify-end justify-items-center">
+                            {/*<label htmlFor="my_modal_6"><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>*/}
+                            <Link href={`/LeBudget/${leBudget?.id}`}> <button><LuEye className='cursor-pointer text-xl text-green-600 mt-1' title='Voir les Transactions' /></button> </Link>
+                            <button onClick={() => openModal(leBudget)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600" title='Modifier Budget'></i></button>
+                            <button onClick={() => supprimeBudget(leBudget?.id)}><i className="bi bi-trash-fill cursor-pointer text-lg text-red-600" title='Supprimer Budget'></i></button>
                           </div>
                         </div>
-                      ))
-                    }
+                      </div>
+                    ))
+                  }
                 </>
-            ) : 
-            (
-                <h4 className='text-center'>Aucun Budget enregisté pour le moment</h4>
-            )
-          }            
+              ) :
+                (
+                  <h4 className='text-center'>Aucun Budget enregisté pour le moment</h4>
+                )
+            }
 
           </div>
         </div>
 
         <div className='mt-10 lg:mt-0'>
-          
-            <FormulaireBudg listeBudget={listeBudget} setListeBudget={setListeBudget} />
+
+          <FormulaireBudg listeBudget={listeBudget} setListeBudget={setListeBudget} />
         </div>
       </div>
 
