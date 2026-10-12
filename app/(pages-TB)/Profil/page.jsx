@@ -2,17 +2,14 @@ import ProfilInterm from '@/composants/ProfilInterm'
 import React from 'react'
 
 export const metadata = {
-  title: "Mon Compte",
-  description: "Profil Utilisateur",
-};
+  title: "Mon Compte & Paramètres | TopBudget",
+  description: "Gérez vos informations personnelles, la sécurité de votre compte et vos préférences sur TopBudget.",
+}
 
-
-function page() {
+export default function page() {
   return (
-    <div className="p-4">
+    <div className="w-full">
       <ProfilInterm />
     </div>
   )
 }
-
-export default page

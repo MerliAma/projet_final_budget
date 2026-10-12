@@ -1,16 +1,23 @@
 "use client"
-import FenTransaction from '@/composants/FenTransaction';
 import React, { useState } from 'react'
+import FenTransaction from '@/composants/FenTransaction'
 
+/**
+ * TransactionIntermd — Composant intermédiaire pour la gestion des transactions
+ * Conserve l'état listeTransaction et listeBudget transmis via props.
+ */
 function TransactionIntermd() {
-   const [listeTransaction, setListeTransaction]=useState([])
-  const [listeBudget, setListeBudget]=useState([]) //pour avoir la liste des budgets de l'user connecté...
+  const [listeTransaction, setListeTransaction] = useState([])
+  const [listeBudget, setListeBudget] = useState([])
 
   return (
-    <div className="p-4">
-      <h3 className="font-bold mb-10" >Mes Transactions</h3>
-      {/* appel du composant contenant une grille pour la fenêtre transaction */}
-      <FenTransaction listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} listeBudget={listeBudget} setListeBudget={setListeBudget} />
+    <div className="w-full">
+      <FenTransaction
+        listeTransaction={listeTransaction}
+        setListeTransaction={setListeTransaction}
+        listeBudget={listeBudget}
+        setListeBudget={setListeBudget}
+      />
     </div>
   )
 }

@@ -1,19 +1,23 @@
 "use client"
-import FenBudget from '@/composants/FenBudget';
 import React, { useState } from 'react'
+import FenBudget from '@/composants/FenBudget'
 
+/**
+ * BudgetIntermd — Composant intermédiaire pour la gestion des budgets
+ * Maintient l'état listeBudget et listeTransaction transmis en props.
+ */
 function BudgetIntermd() {
-  const [listeBudget, setListeBudget]=useState([])
-  const [listeTransaction, setListeTransaction]=useState([])
-  /*if(!RecupInfosUserConnecte()) {
-    useRouter().push("/")
-  }*/
+  const [listeBudget, setListeBudget] = useState([])
+  const [listeTransaction, setListeTransaction] = useState([])
 
   return (
-    <div className="p-4">
-      <h3 className="font-bold mb-10" >Mes Budgets</h3>
-      {/* appel du composant contenant une grille pour la fenêtre Budget */}
-      <FenBudget listeBudget={listeBudget} setListeBudget={setListeBudget} listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} />
+    <div className="w-full">
+      <FenBudget 
+        listeBudget={listeBudget} 
+        setListeBudget={setListeBudget} 
+        listeTransaction={listeTransaction} 
+        setListeTransaction={setListeTransaction} 
+      />
     </div>
   )
 }

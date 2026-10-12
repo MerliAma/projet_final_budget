@@ -1,134 +1,348 @@
 "use client"
-import React, { useEffect, useState } from 'react'
-import FormulaireTrans from '@/composants/FormulaireTrans';
-import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
-import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
-import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB';
-import Link from 'next/link';
-import TableTrans from './TableTrans';
-import { SommeTransactions } from '@/mesFonctions/SommeMontant';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import axios from 'axios'
+import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte'
 
-function FenTransaction({listeTransaction, setListeTransaction, listeBudget, setListeBudget}) {
-  
-  const [IdUserConnecte, setIdUserConnecte] = useState("")
-  const [listeBudFiltre, setListeBudFiltre] = useState([]) // pour faire le filtre, ce tableau est filtré et parcouru
+// Composants modulaires du Lot 6
+import TransactionHeader from './transaction/TransactionHeader'
+import TransactionSummary from './transaction/TransactionSummary'
+import TransactionToolbar from './transaction/TransactionToolbar'
+import TransactionTable from './transaction/TransactionTable'
+import TransactionCard from './transaction/TransactionCard'
+import TransactionModal from './transaction/TransactionModal'
+import ConfirmDeleteTransactionModal from './transaction/ConfirmDeleteTransactionModal'
+import TransactionEmptyState from './transaction/TransactionEmptyState'
+import TransactionSkeleton from './transaction/TransactionSkeleton'
+import TransactionErrorState from './transaction/TransactionErrorState'
+import ToastNotification from './ui/ToastNotification'
 
-  //compteur pour N° d'ordre du tableau
-  //let compter=1
-
-    //On recupère la liste des Transactions-Budget dans indexDb quand le composant est monté (page totalement chargé)
-      useEffect(() => {
-  
-          if (typeof window === "undefined") return;
-  
-          //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
-          setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
-          //const IdUserConnecte=RecupInfosUserConnecte()?.idUser
-
-          //on filtre les budgets de l'utilisateurs (Index DB)
-          /*getAllDataTodatabase("budget", (e) => {
-            const BudUser=e.filter(leBudget => leBudget.idUser===IdUserConnecte)
-            setListeBudget(BudUser)
-            setListeBudFiltre(BudUser)
-          })
-
-          //on recherche les transactions..
-          getAllDataTodatabase("transaction", (e) => {
-            setListeTransaction(e)
-        })*/
-  
-      }, [])
-
-      //pour l'utilisation de la bd realtime de firebase
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        if (!IdUserConnecte) return;
-        GetBudgetTrans();
-        }, [IdUserConnecte]);
-
-    //fonction à exécuter pour le remplissage des tableaux de budgets et transactions
-    const GetBudgetTrans = async () => {
-    try {
-        //On appel notre api backend pour recuperer tous les budgets et transactions
-        const req = await axios.get("/server/budget/get-all")
-        if(req?.data){
-            //setListeBudget(req?.data.budgets)
-            const ListeBud=req?.data.budgets.filter(leBudget => leBudget.idUser === IdUserConnecte)
-            setListeBudget(ListeBud)
-            setListeBudFiltre(ListeBud)
-        }  
-        
-        const req2 = await axios.get("/server/transaction/get-all")
-    
-        if(req2?.data){
-            setListeTransaction(req2?.data.transactions)
-        } 
-
-    } catch (error) {
-       const message = error?.message
-       console.log("Erreur: ", message) 
+/**
+ * FenTransaction — Refonte complète de la gestion des transactions (Lot 6)
+ * Préserve intégralement les props { listeTransaction, setListeTransaction, listeBudget, setListeBudget }
+ * et assure un double rendu responsive fluide (table desktop, cartes mobile).
+ */
+export default function FenTransaction({
+  listeTransaction = [],
+  setListeTransaction,
+  listeBudget = [],
+  setListeBudget,
+}) {
+  const [idUserConnecte, setIdUserConnecte] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return RecupInfosUserConnecte()?.idUser || ''
     }
- }
+    return ''
+  })
 
-      //fonction au changement du select pour le filtre budget
-      const filtreBudget =(Budgetselc) =>{
-        //setListeBudget(listeBudFiltre)
-        //console.log(Budgetselc)
-        if(Budgetselc===""){  //if(Number(Budgetselc)===0){
-            
-            setListeBudFiltre(listeBudget.filter(leBudget => leBudget.idUser===IdUserConnecte))
-        }
-        else{
-          
-          setListeBudFiltre(listeBudget.filter(leBudget => leBudget.id===Budgetselc) ) //Number(Budgetselc)
-        }
+  // États de chargement et d'erreur
+  const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [hasError, setHasError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  // Filtre et recherche
+  const [selectedBudget, setSelectedBudget] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+
+  // Modales
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [transactionToEdit, setTransactionToEdit] = useState(null)
+  const [transactionToDelete, setTransactionToDelete] = useState(null)
+
+  // Notification Toast
+  const [toast, setToast] = useState(null)
+
+  // Initialisation utilisateur
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const infos = RecupInfosUserConnecte()
+    if (infos?.idUser) {
+      setIdUserConnecte(String(infos.idUser))
+    }
+  }, [])
+
+  // Récupération des données API
+  const GetBudgetTrans = useCallback(async (isManualRefresh = false) => {
+    const currentId = idUserConnecte || (typeof window !== 'undefined' ? RecupInfosUserConnecte()?.idUser : '')
+    if (!currentId) return
+
+    if (isManualRefresh) {
+      setIsRefreshing(true)
+    } else {
+      setIsLoading(true)
+    }
+    setHasError(false)
+    setErrorMessage('')
+
+    try {
+      const [reqBudgets, reqTransactions] = await Promise.all([
+        axios.get('/server/budget/get-all'),
+        axios.get('/server/transaction/get-all'),
+      ])
+
+      if (reqBudgets?.data?.budgets) {
+        const tousLesBudgets = reqBudgets.data.budgets
+        const budgetsUtilisateur = tousLesBudgets.filter(
+          (b) => String(b?.idUser || '').trim() === String(currentId).trim()
+        )
+        setListeBudget(budgetsUtilisateur)
+      } else if (reqBudgets?.data?.error || reqBudgets?.data?.message) {
+        setHasError(true)
+        setErrorMessage(reqBudgets?.data?.message || 'Erreur lors du chargement des budgets.')
       }
 
-      
+      if (reqTransactions?.data?.transactions) {
+        setListeTransaction(reqTransactions.data.transactions)
+      }
+    } catch (error) {
+      const errDetail = error?.response?.data?.message || error?.response?.data?.error || error?.message
+      setHasError(true)
+      setErrorMessage(
+        typeof errDetail === 'string'
+          ? errDetail
+          : 'Impossible de récupérer vos données. Veuillez réessayer.'
+      )
+    } finally {
+      setIsLoading(false)
+      setIsRefreshing(false)
+    }
+  }, [idUserConnecte, setListeBudget, setListeTransaction])
+
+  // Déclenchement automatique au chargement
+  useEffect(() => {
+    if (idUserConnecte) {
+      GetBudgetTrans(false)
+    }
+  }, [idUserConnecte, GetBudgetTrans])
+
+  // Filtrage des transactions appartenant uniquement aux budgets de l'utilisateur connecté
+  const userBudgetIdSet = useMemo(() => {
+    return new Set((listeBudget || []).map((b) => String(b.id)))
+  }, [listeBudget])
+
+  const userTransactions = useMemo(() => {
+    return (listeTransaction || []).filter((t) =>
+      userBudgetIdSet.has(String(t?.budgetTrans))
+    )
+  }, [listeTransaction, userBudgetIdSet])
+
+  // Application des filtres (budget + recherche texte) et tri chronologique descendant
+  const filteredTransactions = useMemo(() => {
+    let result = [...userTransactions]
+
+    // Filtre par budget
+    if (selectedBudget) {
+      result = result.filter((t) => String(t.budgetTrans) === String(selectedBudget))
+    }
+
+    // Filtre par texte
+    if (searchQuery.trim()) {
+      const query = searchQuery.trim().toLowerCase()
+      result = result.filter((t) =>
+        (t.descriptionTrans || '').toLowerCase().includes(query)
+      )
+    }
+
+    // Tri par date décroissante
+    result.sort((a, b) => {
+      const dateA = a.dateEnrg ? new Date(a.dateEnrg).getTime() : 0
+      const dateB = b.dateEnrg ? new Date(b.dateEnrg).getTime() : 0
+      return dateB - dateA
+    })
+
+    return result
+  }, [userTransactions, selectedBudget, searchQuery])
+
+  // Gestionnaires des modales
+  const handleOpenCreate = () => {
+    setTransactionToEdit(null)
+    setIsModalOpen(true)
+  }
+
+  const handleOpenEdit = (trans) => {
+    setTransactionToEdit(trans)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setTransactionToEdit(null)
+  }
+
+  // Succès de création ou modification
+  const handleModalSuccess = (savedTrans, isEdit) => {
+    if (isEdit) {
+      setListeTransaction((prev) =>
+        prev.map((t) => (t.id === savedTrans.id ? savedTrans : t))
+      )
+      setToast({
+        type: 'success',
+        message: `La dépense "${savedTrans.descriptionTrans}" a été modifiée avec succès.`,
+      })
+    } else {
+      setListeTransaction((prev) => [savedTrans, ...prev])
+      setToast({
+        type: 'success',
+        message: `La dépense "${savedTrans.descriptionTrans}" a été enregistrée avec succès.`,
+      })
+    }
+  }
+
+  // Succès de suppression
+  const handleDeleteSuccess = (deletedTransId) => {
+    setListeTransaction((prev) => prev.filter((t) => t.id !== deletedTransId))
+    setToast({
+      type: 'success',
+      message: 'Transaction supprimée avec succès.',
+    })
+  }
+
+  // Réinitialisation des filtres
+  const handleResetFilters = () => {
+    setSelectedBudget('')
+    setSearchQuery('')
+  }
+
+  // ── Affichage de l'état de chargement (Skeleton) ──────────
+  if (isLoading && (!listeTransaction || listeTransaction.length === 0)) {
+    return (
+      <div className="w-full">
+        <TransactionSkeleton />
+      </div>
+    )
+  }
+
+  // ── Affichage de l'état d'erreur critique ─────────────────
+  if (hasError && userTransactions.length === 0) {
+    return (
+      <div className="w-full">
+        <TransactionErrorState
+          message={errorMessage}
+          onRetry={() => GetBudgetTrans(false)}
+          isRetrying={isLoading}
+        />
+      </div>
+    )
+  }
+
+  const hasBudgets = listeBudget && listeBudget.length > 0
+  const hasTransactions = userTransactions && userTransactions.length > 0
+  const isFiltered = Boolean(selectedBudget || searchQuery)
 
   return (
-    <div>
+    <div className="w-full space-y-8 animate-fade-in">
+      {/* 1. En-tête de la page */}
+      <TransactionHeader
+        onOpenCreate={handleOpenCreate}
+        onRefresh={() => GetBudgetTrans(true)}
+        isRefreshing={isRefreshing}
+        hasBudgets={hasBudgets}
+      />
 
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-3 '>
+      {/* 2. Résumé des KPIs transactions */}
+      {hasTransactions && (
+        <TransactionSummary
+          listeTransaction={userTransactions}
+          listeBudget={listeBudget}
+        />
+      )}
 
-        <div className='border border-gray-300 p-3 my-auto'>
-          <FormulaireTrans listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} listeBudget={listeBudget} setListeBudget={setListeBudget} fenConcerne={""} />
-        </div>
+      {/* 3. Barre d'outils (Filtre par budget & Recherche textuelle) */}
+      {hasBudgets && (hasTransactions || isFiltered) && (
+        <TransactionToolbar
+          listeBudget={listeBudget}
+          selectedBudget={selectedBudget}
+          onChangeBudget={setSelectedBudget}
+          searchQuery={searchQuery}
+          onChangeSearch={setSearchQuery}
+          totalCount={userTransactions.length}
+          filteredCount={filteredTransactions.length}
+          onResetFilters={handleResetFilters}
+        />
+      )}
 
-        <div className='lg:col-span-2 mt-10 lg:mt-0'>
-          <div className="flex flex-col gap-1 mb-3">
-              { /* liste des budget de l'user connecté dans le filtre pr les recherches */
-                listeBudget?.length>0 ? (
-                  <>
-                  <label className='ms-auto'>Filtrer par Budget</label>
-                  <select defaultValue="" onChange={(e) => filtreBudget(e.target.value)} className="ms-auto select select-md w-60 md:w-100 outline-0 ring-0" name="budget">
-                    <option value="" >Toutes les transactions</option>
-                    {
-                      listeBudget?.map(leBudget => (
-                        <option value={leBudget?.id} key={leBudget?.id} className='capitalize'>{leBudget?.descriptionBud}</option>
-                      ))
-                    }
-                    </select>
-                  </>
-                ) : 
-                (
-                  <>
-                    <Link href={"/Budget"} className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></Link>
-                  </>
-                )
-              }
+      {/* 4. Liste / Tableau des transactions ou États vides */}
+      {!hasBudgets ? (
+        <TransactionEmptyState
+          hasBudgets={false}
+          onOpenCreate={handleOpenCreate}
+        />
+      ) : !hasTransactions ? (
+        <TransactionEmptyState
+          hasBudgets={true}
+          isFiltered={false}
+          onOpenCreate={handleOpenCreate}
+        />
+      ) : filteredTransactions.length === 0 ? (
+        <TransactionEmptyState
+          hasBudgets={true}
+          isFiltered={true}
+          onResetFilters={handleResetFilters}
+        />
+      ) : (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">
+              Historique des dépenses ({filteredTransactions.length})
+            </h2>
+            <span className="text-xs text-slate-400">
+              Trié par date décroissante
+            </span>
           </div>
 
-          {/* la table présentant la liste des transactions */}
-          <TableTrans listeBudFiltre={listeBudFiltre} listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} listeBudget={listeBudget} setListeBudget={setListeBudget} fenConcerne={""}/>
+          {/* Rendu Desktop et Tablette (md+) : Tableau complet */}
+          <div className="hidden md:block">
+            <TransactionTable
+              transactions={filteredTransactions}
+              listeBudget={listeBudget}
+              allTransactions={listeTransaction}
+              onEdit={handleOpenEdit}
+              onDelete={(t) => setTransactionToDelete(t)}
+            />
+          </div>
+
+          {/* Rendu Mobile (< md) : Cartes d'opérations individuelles sans overflow */}
+          <div className="md:hidden space-y-3">
+            {filteredTransactions.map((trans) => (
+              <TransactionCard
+                key={trans.id}
+                trans={trans}
+                listeBudget={listeBudget}
+                allTransactions={listeTransaction}
+                onEdit={handleOpenEdit}
+                onDelete={(t) => setTransactionToDelete(t)}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
+      {/* 5. Modale d'ajout / modification */}
+      <TransactionModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        transactionToEdit={transactionToEdit}
+        listeBudget={listeBudget}
+        listeTransaction={listeTransaction}
+        onSuccess={handleModalSuccess}
+      />
 
-      
+      {/* 6. Boîte de confirmation de suppression */}
+      <ConfirmDeleteTransactionModal
+        isOpen={Boolean(transactionToDelete)}
+        onClose={() => setTransactionToDelete(null)}
+        transaction={transactionToDelete}
+        onSuccess={handleDeleteSuccess}
+      />
+
+      {/* 7. Notifications Toast */}
+      {toast && (
+        <ToastNotification
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   )
 }
-
-export default FenTransaction

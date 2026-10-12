@@ -1,129 +1,267 @@
-//import { DeleteToDB } from '@/lib/IndexDB/deleteToDB'
+"use client"
 import React, { useState } from 'react'
-import FormulaireTrans from './FormulaireTrans'
-import { SommeTransactions } from '@/mesFonctions/SommeMontant'
 import axios from 'axios'
+import Link from 'next/link'
+import { LuPencil, LuTrash2, LuCalendar, LuTag, LuReceipt, LuArrowUpRight } from 'react-icons/lu'
+import { SommeTransactions } from '@/mesFonctions/SommeMontant'
+import TransactionModal from './transaction/TransactionModal'
+import ConfirmDeleteTransactionModal from './transaction/ConfirmDeleteTransactionModal'
+import ToastNotification from './ui/ToastNotification'
 
-function TableTrans({listeBudFiltre, listeTransaction, setListeTransaction, listeBudget, setListeBudget, fenConcerne}) {
-  
-  //compteur pour N° d'ordre du tableau
-  let compter=1
-
-  //pour la modification de la transaction. on actualise la valeur de transModif avec l'objet laTrans et on la passe en props au formulaire
+/**
+ * TableTrans — Tableau et liste responsive des transactions
+ * Utilisé notamment dans la vue de détail /LeBudget/[id].
+ * Préserve intégralement les props { listeBudFiltre, listeTransaction, setListeTransaction, listeBudget, setListeBudget, fenConcerne }
+ */
+function TableTrans({
+  listeBudFiltre = [],
+  listeTransaction = [],
+  setListeTransaction,
+  listeBudget = [],
+  setListeBudget,
+  fenConcerne = '',
+}) {
   const [transModif, setTransModif] = useState(null)
-  const openModal = (laTrans) => {
-    setTransModif(laTrans)
-    setTimeout(() => {
-      document.getElementById("openModalTrans")?.click()
-    }, 200);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [transToDelete, setTransToDelete] = useState(null)
+  const [toast, setToast] = useState(null)
+
+  // Filtrage des transactions pour les budgets ciblés
+  const budgetsIds = new Set((listeBudFiltre || []).map((b) => String(b.id)))
+  const transactionsAffichees = (listeTransaction || []).filter((t) =>
+    budgetsIds.has(String(t.budgetTrans))
+  )
+
+  // Tri par date décroissante
+  transactionsAffichees.sort((a, b) => {
+    const dateA = a.dateEnrg ? new Date(a.dateEnrg).getTime() : 0
+    const dateB = b.dateEnrg ? new Date(b.dateEnrg).getTime() : 0
+    return dateB - dateA
+  })
+
+  // Gestionnaires d'actions
+  const handleOpenEdit = (trans) => {
+    setTransModif(trans)
+    setIsEditModalOpen(true)
   }
-  
-  //On supprime la transaction //IndexDB
-  /*const supprimeTrans = (id) => {
-    if (confirm("Voulez-vous supprimer cette Transaction ?")) {
-      DeleteToDB("transaction", id, (e) => {
-        if (!e) {
-          alert("Tâche non supprimé. une erreur s'est produite")
-          return;
-        }
 
-        //On retire la tache du tableau js (html)
-        const nouveauTableau = listeTransaction.filter(item =>
-          item.id !== id
-        )
+  const handleEditSuccess = (savedTrans) => {
+    setListeTransaction((prev) =>
+      prev.map((t) => (t.id === savedTrans.id ? savedTrans : t))
+    )
+    setToast({
+      type: 'success',
+      message: 'Transaction mise à jour avec succès.',
+    })
+  }
 
-        setListeTransaction(nouveauTableau);
-      })
-    }
-  }*/
+  const handleDeleteSuccess = (deletedId) => {
+    setListeTransaction((prev) => prev.filter((t) => t.id !== deletedId))
+    setToast({
+      type: 'success',
+      message: 'Transaction supprimée avec succès.',
+    })
+  }
 
-    //Realtime db
-    const supprimeTrans = async(id) => {
-      if (typeof window === "undefined") return;
-
-      //realtime db
-      if (confirm("Voulez-vous supprimer cette transaction ?")) {
-        
-        const reqT = await axios.delete(`/server/transaction/deleteT/${id}`)
-
-        if(!reqT?.data) return
-        if(reqT?.data?.message==="Transaction supprimée"){
-          alert("Transaction supprimée avec succès")
-
-          //On retire la transaction du tableau js (html)
-          const nouveauTableau = listeTransaction.filter(item =>
-            item.id !== id
-          )
-
-          setListeTransaction(nouveauTableau);
-        }
-        else{
-          alert("Une erreur s'est produite.")
-        }
-      }
-    }
-  
+  if (transactionsAffichees.length === 0) {
     return (
+      <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center shadow-xs">
+        <div className="w-12 h-12 bg-slate-100 text-slate-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+          <LuReceipt className="text-2xl" />
+        </div>
+        <h4 className="text-sm font-bold text-slate-800 mb-1">
+          Aucune transaction pour ce budget
+        </h4>
+        <p className="text-xs text-slate-500">
+          Enregistrez une nouvelle dépense à gauche pour commencer le suivi.
+        </p>
+      </div>
+    )
+  }
+
+  return (
     <>
-    <div className=' overflow-x-auto w-full rounded-box border border-base-content/5 bg-base-100 shadow-lg'>
-            <table className="table table-zebra w-full">
-              {/* head */}
-              <thead>
-                <tr>
-                  <th>N°</th>
-                  <th>Date Ajout</th>
-                  <th>Description</th>
-                  <th>Montant</th>
-                  <th>Budget Concerné</th>
-                  <th>Montant alloué Restant</th>
-                  <th>Mois</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="TableTrans">
-                {/* Liste de toutes les transactions de l'user  */}
-                {
-                  (listeBudFiltre?.length>0 && listeTransaction?.length>0 ) && 
-                  //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
-                  <>
-                  {listeBudFiltre.map((leBudget,indexB) => (
-                    listeTransaction.filter(laTrans => laTrans.budgetTrans===leBudget.id).map((laTransUser,indexT) => (
-                      <tr key={`${indexB}-${indexT}`}>
-                  <td>{compter++}</td>
-                  <td>{new Date(laTransUser?.dateEnrg).toLocaleDateString("fr-FR",{ day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
-                  <td className='bg-orange-400 text-white text-nowrap'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
-                  <td className=' capitalize font-semibold' >{leBudget?.descriptionBud}</td>
-                  <td className=' text-teal-700' >{SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA</td>
-                  <td>{new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</td>
-                  <td className='flex items-center gap-3'>
-                    {/*<label htmlFor="my_modal_6" ><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>
-                    <i className="bi bi-trash-fill cursor-pointer text-lg text-red-600"></i>*/}
-                    <button onClick={() => openModal(laTransUser)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></button>
-                    <button onClick={() => supprimeTrans(laTransUser?.id)}><i className="bi bi-trash-fill cursor-pointer text-lg text-red-600"></i></button>
-                  </td>
-                </tr>
-                    )))
-                  )}</>
-                }
+      {/* ── Rendu Desktop & Tablette (md+) : Tableau ───────── */}
+      <div className="hidden md:block bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                <th scope="col" className="py-3.5 pl-6 pr-3">N°</th>
+                <th scope="col" className="py-3.5 px-3">Date</th>
+                <th scope="col" className="py-3.5 px-3">Description</th>
+                <th scope="col" className="py-3.5 px-3 text-right">Montant</th>
+                <th scope="col" className="py-3.5 px-3">Budget</th>
+                <th scope="col" className="py-3.5 px-3 text-right">Reste</th>
+                <th scope="col" className="py-3.5 pr-6 pl-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="TableTrans" className="divide-y divide-slate-100 text-xs sm:text-sm">
+              {transactionsAffichees.map((trans, index) => {
+                const leBudget = listeBudget.find((b) => String(b.id) === String(trans.budgetTrans))
+                const reste = leBudget 
+                  ? SommeTransactions(leBudget.id, listeTransaction, listeBudget, leBudget.montantBud).reste 
+                  : 0
 
-              </tbody>
-            </table>
-          </div>
+                const dateFormatee = trans.dateEnrg 
+                  ? new Date(trans.dateEnrg).toLocaleDateString('fr-FR', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })
+                  : '—'
 
-          <label htmlFor="my_modal_6" id="openModalTrans" className='hidden'></label>
-      {/* Put this part before </body> tag */}
-      <input type="checkbox" id="my_modal_6" className="modal-toggle" />
-      <div className="modal" role="dialog">
-        <div className="modal-box">
-          {/* corps modal de modification */}
-            <FormulaireTrans listeTransaction={listeTransaction} setListeTransaction={setListeTransaction} listeBudget={listeBudget} setListeBudget={setListeBudget} TransactionM={transModif} fenConcerne={fenConcerne} />
-          {/*<div className="modal-action">
-            <button className='btn bg-teal-900 text-white'>Valider</button>
-            <label htmlFor="my_modal_6" className="btn">Annuler</label>
-          </div>*/}
+                const montant = Number(trans.montantTrans || 0)
+
+                return (
+                  <tr key={trans.id || index} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="py-3.5 pl-6 pr-3 text-xs font-semibold text-slate-400">
+                      {index + 1}
+                    </td>
+                    <td className="py-3.5 px-3 whitespace-nowrap text-slate-600 text-xs">
+                      {dateFormatee}
+                    </td>
+                    <td className="py-3.5 px-3 font-semibold text-slate-900 capitalize">
+                      {trans.descriptionTrans}
+                    </td>
+                    <td className="py-3.5 px-3 text-right whitespace-nowrap font-black text-red-600">
+                      -{montant.toLocaleString('fr-FR')}{' '}
+                      <span className="text-[10px] font-semibold text-slate-400">FCFA</span>
+                    </td>
+                    <td className="py-3.5 px-3 whitespace-nowrap">
+                      {leBudget ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 capitalize">
+                          {leBudget.descriptionBud}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="py-3.5 px-3 text-right whitespace-nowrap font-bold text-xs">
+                      <span className={reste >= 0 ? 'text-[#16a34a]' : 'text-red-600'}>
+                        {reste.toLocaleString('fr-FR')} FCFA
+                      </span>
+                    </td>
+                    <td className="py-3.5 pr-6 pl-3 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(trans)}
+                          className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                          title="Modifier"
+                          aria-label={`Modifier ${trans.descriptionTrans}`}
+                        >
+                          <LuPencil className="text-base" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setTransToDelete(trans)}
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                          title="Supprimer"
+                          aria-label={`Supprimer ${trans.descriptionTrans}`}
+                        >
+                          <LuTrash2 className="text-base" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
+
+      {/* ── Rendu Mobile (< md) : Cartes d'opérations ──────── */}
+      <div className="md:hidden space-y-3">
+        {transactionsAffichees.map((trans) => {
+          const leBudget = listeBudget.find((b) => String(b.id) === String(trans.budgetTrans))
+          const reste = leBudget 
+            ? SommeTransactions(leBudget.id, listeTransaction, listeBudget, leBudget.montantBud).reste 
+            : 0
+
+          const dateFormatee = trans.dateEnrg 
+            ? new Date(trans.dateEnrg).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+              })
+            : '—'
+
+          const montant = Number(trans.montantTrans || 0)
+
+          return (
+            <div key={trans.id} className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h4 className="font-bold text-slate-900 text-sm capitalize">{trans.descriptionTrans}</h4>
+                  <span className="text-xs text-slate-400">{dateFormatee}</span>
+                </div>
+                <div className="font-black text-red-600 text-sm">
+                  -{montant.toLocaleString('fr-FR')} FCFA
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100">
+                <span className="text-slate-500">Reste du budget :</span>
+                <strong className={reste >= 0 ? 'text-[#16a34a]' : 'text-red-600'}>
+                  {reste.toLocaleString('fr-FR')} FCFA
+                </strong>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => handleOpenEdit(trans)}
+                  className="px-3 py-1.5 text-xs font-semibold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors cursor-pointer"
+                  aria-label={`Modifier la dépense ${trans.descriptionTrans}`}
+                >
+                  Modifier
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTransToDelete(trans)}
+                  className="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors cursor-pointer"
+                  aria-label={`Supprimer la dépense ${trans.descriptionTrans}`}
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Modale de modification */}
+      <TransactionModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setTransModif(null)
+        }}
+        transactionToEdit={transModif}
+        listeBudget={listeBudget}
+        listeTransaction={listeTransaction}
+        onSuccess={handleEditSuccess}
+        fenConcerne={fenConcerne}
+      />
+
+      {/* Boîte de confirmation de suppression */}
+      <ConfirmDeleteTransactionModal
+        isOpen={Boolean(transToDelete)}
+        onClose={() => setTransToDelete(null)}
+        transaction={transToDelete}
+        onSuccess={handleDeleteSuccess}
+      />
+
+      {/* Toast */}
+      {toast && (
+        <ToastNotification
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
     </>
   )
 }

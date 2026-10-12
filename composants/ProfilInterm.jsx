@@ -1,14 +1,15 @@
+"use client"
 import React from 'react'
 import Profil from './Profil'
 
-function ProfilInterm() {
+/**
+ * ProfilInterm — Composant intermédiaire pour la page Profil
+ * Encapsule le composant Profil sans surcharge visuelle superflue.
+ */
+export default function ProfilInterm() {
   return (
-    <div className="p-4">
-      <h3 className="font-bold mb-10" >Mon Compte</h3>
-      {/* appel du composant pr le Profil */}
-      <Profil/>
+    <div className="w-full">
+      <Profil />
     </div>
   )
 }
-
-export default ProfilInterm

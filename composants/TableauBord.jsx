@@ -1,156 +1,205 @@
 "use client"
-import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
-import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
-import { SommeMontantBud, SommeTransactions } from '@/mesFonctions/SommeMontant';
-import axios from 'axios';
-import Link from 'next/link';
-import React, { useEffect, useState } from 'react'
-import { IoEyeSharp } from "react-icons/io5";
+import React, { useEffect, useState, useCallback } from 'react'
+import axios from 'axios'
+import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte'
+import { SommeMontantBud, SommeTransactions } from '@/mesFonctions/SommeMontant'
+import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB' // Préservé pour conformité historique
 
-function TableauBord({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
+// Composants modulaires du Dashboard
+import DashboardHeader from './dashboard/DashboardHeader'
+import DashboardStats from './dashboard/DashboardStats'
+import BudgetOverview from './dashboard/BudgetOverview'
+import DashboardChart from './dashboard/DashboardChart'
+import RecentTransactions from './dashboard/RecentTransactions'
+import DashboardSkeleton from './dashboard/DashboardSkeleton'
+import DashboardEmpty from './dashboard/DashboardEmpty'
+import DashboardError from './dashboard/DashboardError'
 
-    const [IdUserConnecte, setIdUserConnecte] = useState("")
-    
-    let compter=1
-    //let IdUserConnecte=""
-    
-    //On recupère la liste des Transactions-Budget dans indexDb quand le composant est monté (page totalement chargé)
-    useEffect(() => {
-
-        if (typeof window === "undefined") return;
-
-        //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
-        setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
-        //IdUserConnecte=RecupInfosUserConnecte()?.idUser
-
-        //on filtre les budgets de l'utilisateurs (IndexDB)
-        /*getAllDataTodatabase("budget", (e) => {
-            const ListeBud=e.filter(leBudget => leBudget.idUser === IdUserConnecte)
-            setListeBudget(ListeBud)
-            //console.log(ListeBud,"ama", RecupInfosUserConnecte()?.idUser)
-        })
-
-        //on recherche les transactions..
-        getAllDataTodatabase("transaction", (e) => {
-            setListeTransaction(e)
-        })*/
-       
-       //utilisation de la bd realtime de firebase
-       //const btnClick=document.getElementById('RemplirBudTrans').click()
-        //if(btnClick) console.log(listeBudget)
-    }, [])
-
-     //pour l'utilisation de la bd realtime de firebase
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        if (!IdUserConnecte) return;
-        GetBudgetTrans();
-        }, [IdUserConnecte]);
-
-    //fonction à exécuter pour le remplissage des tableaux de budgets et transactions
-    const GetBudgetTrans = async () => {
-    try {
-        //On appel notre api backend pour recuperer tous les budgets et transactions
-        const req = await axios.get("/server/budget/get-all")
-        if(req?.data){
-            //setListeBudget(req?.data.budgets)
-            const ListeBud=req?.data.budgets.filter(leBudget => leBudget.idUser === IdUserConnecte)
-            setListeBudget(ListeBud)
-        }  
-        
-        const req2 = await axios.get("/server/transaction/get-all")
-        if(req2?.data){
-            setListeTransaction(req2?.data.transactions)
-        } 
-
-    } catch (error) {
-       const message = error?.message
-       console.log("Erreur: ", message) 
+/**
+ * TableauBord — Refonte UI/UX du tableau de bord principal (Lots 3 & 4)
+ * Préserve intégralement les props et la logique métier existante.
+ */
+function TableauBord({ listeBudget = [], setListeBudget, listeTransaction = [], setListeTransaction }) {
+  const [idUserConnecte, setIdUserConnecte] = useState(() => {
+    if (typeof window !== "undefined") {
+      return RecupInfosUserConnecte()?.idUser || ""
     }
- }
+    return ""
+  })
+  const [userName, setUserName] = useState(() => {
+    if (typeof window !== "undefined") {
+      return RecupInfosUserConnecte()?.nomUser || ""
+    }
+    return ""
+  })
+  const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [hasError, setHasError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
 
+  // Récupération des informations de l'utilisateur connecté au montage
+  useEffect(() => {
+    if (typeof window === "undefined") return
+
+    const infos = RecupInfosUserConnecte()
+    if (infos?.idUser) {
+      setIdUserConnecte(String(infos.idUser))
+      setUserName(infos.nomUser || "")
+    }
+
+    // IndexDB — ancien code conservé pour conformité avec les règles du projet
+    /*
+    getAllDataTodatabase("budget", (e) => {
+        const ListeBud = e.filter(leBudget => leBudget.idUser === IdUserConnecte)
+        setListeBudget(ListeBud)
+    })
+    getAllDataTodatabase("transaction", (e) => {
+        setListeTransaction(e)
+    })
+    */
+  }, [])
+
+  // Récupération des budgets et transactions depuis l'API backend
+  const GetBudgetTrans = useCallback(async (isManualRefresh = false) => {
+    const currentId = idUserConnecte || (typeof window !== "undefined" ? RecupInfosUserConnecte()?.idUser : "")
+    if (!currentId) return
+
+    if (isManualRefresh) {
+      setIsRefreshing(true)
+    } else {
+      setIsLoading(true)
+    }
+    setHasError(false)
+    setErrorMessage("")
+
+    try {
+      const [reqBudgets, reqTransactions] = await Promise.all([
+        axios.get("/server/budget/get-all"),
+        axios.get("/server/transaction/get-all")
+      ])
+
+      if (reqBudgets?.data?.budgets) {
+        const tousLesBudgets = reqBudgets.data.budgets
+        const ListeBud = tousLesBudgets.filter(
+          leBudget => String(leBudget?.idUser || "").trim() === String(currentId).trim()
+        )
+        if (tousLesBudgets.length > 0 && ListeBud.length === 0) {
+          console.warn(`[TableauBord] ${tousLesBudgets.length} budget(s) trouvés dans la base, mais aucun ne correspond à l'idUser de l'utilisateur connecté ("${currentId}"). IDs en base :`, tousLesBudgets.map(b => b.idUser))
+        }
+        setListeBudget(ListeBud)
+      } else if (reqBudgets?.data?.error || reqBudgets?.data?.message) {
+        setHasError(true)
+        setErrorMessage(reqBudgets?.data?.message || reqBudgets?.data?.error?.error || "Erreur de base de données")
+      }
+
+      if (reqTransactions?.data?.transactions) {
+        setListeTransaction(reqTransactions.data.transactions)
+      }
+    } catch (error) {
+      const errDetail = error?.response?.data?.message || error?.response?.data?.error?.error || error?.response?.data?.error || error?.message
+      //console.error("Erreur lors de la récupération des données :", errDetail)
+      setHasError(true)
+      setErrorMessage(typeof errDetail === "string" ? errDetail : "Erreur de connexion à la base de données")
+    } finally {
+      setIsLoading(false)
+      setIsRefreshing(false)
+    }
+  }, [idUserConnecte, setListeBudget, setListeTransaction])
+
+  // Déclenchement automatique dès que l'ID utilisateur est disponible
+  useEffect(() => {
+    if (idUserConnecte) {
+      GetBudgetTrans(false)
+    }
+  }, [idUserConnecte, GetBudgetTrans])
+
+  // Rafraîchissement manuel
+  const handleRefresh = () => {
+    GetBudgetTrans(true)
+  }
+
+  // Calculs financiers globaux avec les fonctions métier existantes
+  const totalAlloue = SommeMontantBud(listeBudget)
+  const totalDepense = SommeTransactions("", listeTransaction, listeBudget, 0)
+
+  // ── Affichage de l'état de chargement (Skeleton) ──────────
+  if (isLoading) {
     return (
-    <div className="p-4">
-        {/*Bouton pour l'exécution de mes routes api */}
-        <button className='hidden' onClick={() => GetBudgetTrans()} id='RemplirBudTrans'></button>
+      <div className="w-full">
+        {/* Bouton masqué préservé pour compatibilité éventuelle */}
+        <button className="hidden" onClick={() => GetBudgetTrans(false)} id="RemplirBudTrans" />
+        <DashboardSkeleton />
+      </div>
+    )
+  }
 
-            <div className='flex flex-col md:flex-row items-center gap-10 md:justify-between my-5'>
-                <h3 className="font-bold ">Tableau de Bord</h3>
-                {/*<button className='btn bg-teal-900 text-white'>Nouveau Budget <i className="bi bi-plus-lg"></i></button>*/}
-                <div className='flex gap-3'>
-                    <Link href={"/Budget"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Budget <IoEyeSharp /> </Link>
-                    <Link href={"/Transaction"} className='badge badge-md lg:badge-lg bg-teal-900 text-white'>Consulter Transaction <IoEyeSharp /></Link>
-                </div>
-            </div>
+  // ── Affichage de l'état d'erreur ──────────────────────────
+  if (hasError && (!listeBudget || listeBudget.length === 0)) {
+    return (
+      <div className="w-full">
+        <button className="hidden" onClick={() => GetBudgetTrans(false)} id="RemplirBudTrans" />
+        <DashboardError onRetry={() => GetBudgetTrans(false)} isRetrying={isLoading} message={errorMessage} />
+      </div>
+    )
+  }
 
-            {/* Etiquettes */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 my-10">
-                <div className="card bg-base-100 card-lg shadow-md shadow-blue-400/80">
-                    <div className="card-body"> {/* somme du montant alloué de tous les budgets confondues */}
-                        <h2 className="card-title">{`${SommeMontantBud(listeBudget).toLocaleString('fr-FR')} FCFA`}</h2>
-                        <p>Montant Total alloué</p>
-                        <p>&nbsp;&nbsp;&nbsp; Nombre de Budget: <b>{listeBudget.length}</b></p>
-                    </div>
-                </div>
+  // ── Affichage de l'état vide (Nouveau compte sans budget) ──
+  if (!listeBudget || listeBudget.length === 0) {
+    return (
+      <div className="w-full">
+        <button className="hidden" onClick={() => GetBudgetTrans(false)} id="RemplirBudTrans" />
+        <DashboardEmpty userName={userName} />
+      </div>
+    )
+  }
 
-                <div className="card bg-base-100 card-lg shadow-md shadow-red-400">
-                    <div className="card-body"> {/* somme de toutes les transactions confondues */}
-                        <h2 className="card-title">{`${SommeTransactions("",listeTransaction,listeBudget,0).toLocaleString('fr-FR')} FCFA`}</h2>
-                        <p>Montant Total des Transactions</p>
-                        {/*<p>&nbsp;&nbsp;&nbsp; Nombre de Transactions: <b>{listeTransaction.length}</b></p>*/}
-                    </div>
-                </div>
+  // ── Affichage principal du Tableau de bord ────────────────
+  return (
+    <div className="w-full space-y-8 animate-fade-in">
+      
+      {/* Bouton d'exécution des routes API conservé pour rétro-compatibilité */}
+      <button className="hidden" onClick={() => GetBudgetTrans(false)} id="RemplirBudTrans" />
 
-                <div className="card bg-base-100 card-lg shadow-md shadow-green-400/80">
-                    <div className="card-body"> {/* ? */}
-                        <h2 className="card-title">0 %</h2>
-                        <p>Taux de Réussite</p>
-                    </div>
-                </div>
-            </div>
+      {/* 1. En-tête du Dashboard (Salutation, actualisation, actions rapides) */}
+      <DashboardHeader 
+        userName={userName} 
+        onRefresh={handleRefresh} 
+        isRefreshing={isRefreshing} 
+      />
 
-            {/* Tableau transactions */}
-            <h3 className="font-bold mb-10">Mes 10 dernières transactions</h3>
-            <div className="overflow-x-auto rounded-box border border-base-content/5 bg-base-100 shadow-lg">
-                <table className="table table-zebra">
-                    {/* head */}
-                    <thead>
-                        <tr>
-                            <th>N°</th>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Montant</th>
-                            <th>Budget Int.</th>
-                            <th>Mois</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {/* Liste des 10 dernières transactions de l'user  */}
-                {
-                  (listeBudget?.length>0 && listeTransaction?.length>0 ) && 
-                  //on parcourt les budgets de l'user, puis on filtre les transactions de ce budget 
-                  <>
-                  {listeBudget.map((leBudget,indexB) => (
-                    listeTransaction.filter(laTrans => laTrans.budgetTrans===leBudget.id) //plus de Number car plus de index DB
-                    .slice(0, 9)
-                    .sort((a, b) => Date.parse(b.dateEnrg) - Date.parse(a.dateEnrg)) //pr ranger dans l'ordre décroissant des dates
-                    .map((laTransUser,indexT) => (
-                      <tr key={`${indexB}-${indexT}`}>
-                  <td id="num">{compter++}</td>
-                  <td>{new Date(laTransUser?.dateEnrg).toLocaleDateString("fr",{ day: '2-digit', month: '2-digit', year: 'numeric' })}</td>
-                  <td className=' capitalize'>{laTransUser?.descriptionTrans}</td>
-                  <td className='text-red-500'>{`- ${laTransUser?.montantTrans.toLocaleString('fr-FR')}`}</td>
-                  <td className=' capitalize font-semibold'>{leBudget?.descriptionBud}</td>
-                  <td>{new Date(leBudget?.moisBud).toLocaleDateString("fr",{month:"long", year:"numeric"})}</td>
-                </tr>
-                    )))
-                  )}</>
-                }
-                    </tbody>
-                </table>
-            </div>
-            
+      {/* 2. Cartes statistiques principales (Hiérarchie stricte 1 à 4) */}
+      <DashboardStats 
+        totalAlloue={totalAlloue} 
+        totalDepense={totalDepense} 
+        nombreBudgets={listeBudget.length} 
+      />
+
+      {/* 3. Grille 2 colonnes : Vue synthétique des budgets + Graphique de répartition */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+        {/* Budgets (2 colonnes sur grand écran) */}
+        <div className="lg:col-span-2">
+          <BudgetOverview 
+            listeBudget={listeBudget} 
+            listeTransaction={listeTransaction} 
+          />
         </div>
+
+        {/* Graphique de répartition des dépenses (1 colonne sur grand écran) */}
+        <div className="lg:col-span-1">
+          <DashboardChart 
+            listeBudget={listeBudget} 
+            listeTransaction={listeTransaction} 
+          />
+        </div>
+      </div>
+
+      {/* 4. Tableau des 10 dernières transactions (Tri global + Double rendu responsive) */}
+      <RecentTransactions 
+        listeBudget={listeBudget} 
+        listeTransaction={listeTransaction} 
+      />
+
+    </div>
   )
 }
 

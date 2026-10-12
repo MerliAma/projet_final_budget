@@ -22,8 +22,8 @@ function LeBudgetIntermd({idBudget}) {
         }  
         
         const req2 = await axios.get("/server/transaction/get-all")
-        if(req2?.data){
-            setListeTrans(req2?.data.transactions.filter(laTrans => laTrans.budgetTrans===idBudget))
+        if(req2?.data?.transactions){
+            setListeTrans(req2.data.transactions.filter(laTrans => String(laTrans.budgetTrans) === String(idBudget)))
         } 
 
     } catch (error) {

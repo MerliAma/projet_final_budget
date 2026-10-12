@@ -1,0 +1,150 @@
+"use client"
+import React, { useState, useEffect } from 'react'
+import axios from 'axios'
+import { LuTrash2, LuX, LuLoader } from 'react-icons/lu'
+
+/**
+ * ConfirmDeleteTransactionModal — Boîte de dialogue de confirmation de suppression d'une transaction
+ */
+export default function ConfirmDeleteTransactionModal({
+  isOpen,
+  onClose,
+  transaction,
+  onSuccess,
+}) {
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (isOpen) {
+      setErrorMessage('')
+      setIsDeleting(false)
+    }
+  }, [isOpen])
+
+  // Fermeture au clavier avec Échap
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape' && isOpen && !isDeleting) {
+        onClose()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, isDeleting, onClose])
+
+  if (!isOpen || !transaction) return null
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true)
+    setErrorMessage('')
+
+    try {
+      const res = await axios.delete(`/server/transaction/deleteT/${transaction.id}`)
+      if (res?.data?.message === 'Transaction supprimée' || res?.status === 200) {
+        onSuccess(transaction.id)
+        onClose()
+      } else {
+        setErrorMessage(res?.data?.message || 'Erreur lors de la suppression de la transaction.')
+      }
+    } catch (err) {
+      const serverMsg = err?.response?.data?.message || err?.response?.data?.error || err?.message
+      setErrorMessage(typeof serverMsg === 'string' ? serverMsg : "Une erreur est survenue lors de la suppression.")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const montant = Number(transaction.montantTrans || 0)
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fade-in"
+      role="alertdialog"
+      aria-modal="true"
+      aria-labelledby="confirm-delete-trans-title"
+      aria-describedby="confirm-delete-trans-desc"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isDeleting) onClose()
+      }}
+    >
+      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xl max-w-md w-full overflow-hidden transition-all">
+        
+        {/* ── En-tête ───────────────────────────────────────── */}
+        <div className="px-6 pt-6 pb-4 flex items-start justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-red-100 text-red-600 rounded-xl shrink-0" aria-hidden="true">
+              <LuTrash2 className="text-xl" />
+            </div>
+            <div>
+              <h2 id="confirm-delete-trans-title" className="text-base sm:text-lg font-bold text-slate-900">
+                Supprimer cette transaction ?
+              </h2>
+              <p className="text-xs text-slate-500">
+                Cette dépense sera retirée de vos calculs budgétaires.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isDeleting}
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer disabled:opacity-50"
+            aria-label="Fermer"
+          >
+            <LuX className="text-lg" />
+          </button>
+        </div>
+
+        {/* ── Contenu explicatif ────────────────────────────── */}
+        <div className="px-6 py-2 space-y-3">
+          <div id="confirm-delete-trans-desc" className="p-3.5 bg-slate-50 rounded-xl border border-slate-100">
+            <div className="text-xs text-slate-500 font-medium">Dépense sélectionnée :</div>
+            <div className="text-sm font-bold text-slate-900 capitalize mt-0.5">
+              {transaction.descriptionTrans}
+            </div>
+            <div className="text-sm font-black text-red-600 mt-1">
+              -{montant.toLocaleString('fr-FR')} FCFA
+            </div>
+          </div>
+
+          {errorMessage && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700" role="alert">
+              {errorMessage}
+            </div>
+          )}
+        </div>
+
+        {/* ── Actions ───────────────────────────────────────── */}
+        <div className="px-6 py-4 mt-2 bg-slate-50 border-t border-slate-100 flex items-center justify-end gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={isDeleting}
+            className="px-4 py-2.5 rounded-xl text-xs sm:text-sm font-medium border border-slate-200 text-slate-700 hover:bg-white transition-colors cursor-pointer disabled:opacity-50"
+          >
+            Annuler
+          </button>
+
+          <button
+            type="button"
+            onClick={handleConfirmDelete}
+            disabled={isDeleting}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-red-600 text-white hover:bg-red-700 active:scale-[0.98] transition-all shadow-xs cursor-pointer disabled:opacity-60"
+          >
+            {isDeleting ? (
+              <>
+                <LuLoader className="text-base animate-spin" />
+                <span>Suppression...</span>
+              </>
+            ) : (
+              <span>Supprimer</span>
+            )}
+          </button>
+        </div>
+
+      </div>
+    </div>
+  )
+}

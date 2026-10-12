@@ -1,227 +1,263 @@
 "use client"
-import React, { useState, useEffect } from 'react'
-import FormulaireBudg from '@/composants/FormulaireBudg';
-import { getAllDataTodatabase } from '@/lib/IndexDB/getAllDB';
-import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte';
-import { DeleteToDB } from '@/lib/IndexDB/deleteToDB';
-import { getOneDataTodatabase } from '@/lib/IndexDB/getOneDataToDB';
-import GetMesBudgets from '@/mesFonctions/GetMesBudgets';
-import { SommeTransactions } from '@/mesFonctions/SommeMontant';
-import { LuEye } from 'react-icons/lu';
-import Link from 'next/link';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback } from 'react'
+import axios from 'axios'
+import { RecupInfosUserConnecte } from '@/mesFonctions/RecupInfosUserConnecte'
+import { SommeTransactions } from '@/mesFonctions/SommeMontant'
 
-function FenBudget({listeBudget, setListeBudget, listeTransaction, setListeTransaction}) {
-  
-    const [IdUserConnecte, setIdUserConnecte] = useState("")
-    //const [idBuget, setIdBudget]=useState("") //pr afficher les transactions d'un budget dans un popup
+// Composants modulaires du Lot 5
+import BudgetHeader from './budget/BudgetHeader'
+import BudgetSummary from './budget/BudgetSummary'
+import BudgetCard from './budget/BudgetCard'
+import BudgetModal from './budget/BudgetModal'
+import ConfirmDeleteBudgetModal from './budget/ConfirmDeleteBudgetModal'
+import BudgetEmptyState from './budget/BudgetEmptyState'
+import BudgetSkeleton from './budget/BudgetSkeleton'
+import BudgetErrorState from './budget/BudgetErrorState'
+import ToastNotification from './ui/ToastNotification'
 
-  //On recupère la liste des Budgets dans indexDb quand le composant est monté (page totalement chargé)
-    useEffect(() => {
-
-        if (typeof window === "undefined") return;
-
-        /*getAllDataTodatabase("budget", (e) => {
-            setListeBudget(e)
-        })
-         getAllDataTodatabase("transaction", (e) => {
-            setListeTransaction(e)
-        })*/
-
-        //utilisation de la bd realtime de firebase
-        //document.getElementById('RemplirBudTrans').click()
-
-        //on profite pour récupérer l'ID de l'utilisateur connecter avec la fonction importée RecupInfosUserConnecte()
-        setIdUserConnecte(RecupInfosUserConnecte()?.idUser)
-
-    }, [])
-
-    //pour l'utilisation de la bd realtime de firebase
-    useEffect(() => {
-      if (typeof window === "undefined") return;
-      if (!IdUserConnecte) return;
-      GetBudgetTrans();
-      }, [IdUserConnecte]);
-
-    //fonction à exécuter pour le remplissage des tableaux de budgets et transactions
-    const GetBudgetTrans = async () => {
-        try {
-            //On appel notre api backend pour recuperer tous les budgets et transactions
-            const req = await axios.get("/server/budget/get-all")
-            if(req?.data){
-                setListeBudget(req?.data.budgets.filter(leBudget => leBudget.idUser===IdUserConnecte))
-               
-            }  
-            
-            const req2 = await axios.get("/server/transaction/get-all")
-            if(req2?.data){
-                setListeTransaction(req2?.data.transactions)
-            } 
-    
-        } catch (error) {
-           const message = error?.message
-           console.log("Erreur: ", message) 
-        }
-     } 
-//console.log(SommeTransactions("-P0MXY76XT75Y3lj-M41", listeTransaction,listeBudget,0).Somme)
-    //pour ouvrir la fenêtre modal pour la modification en lui donnant la variable budgetModif comme paramètre
-    const [budgetModif, setBudgetModif] = useState(null)
-    const openModal = (leBudget) => {
-        setBudgetModif(leBudget)
-        setTimeout(() => {
-            document.getElementById("openModalBTN")?.click()
-        }, 200);
+/**
+ * FenBudget — Refonte complète de la gestion des budgets (Lot 5)
+ * Préserve intégralement les props { listeBudget, setListeBudget, listeTransaction, setListeTransaction }
+ * et la logique métier financière.
+ */
+export default function FenBudget({
+  listeBudget = [],
+  setListeBudget,
+  listeTransaction = [],
+  setListeTransaction,
+}) {
+  const [idUserConnecte, setIdUserConnecte] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return RecupInfosUserConnecte()?.idUser || ''
     }
+    return ''
+  })
 
-    //On supprime le budget//avec index DB
-    /*const supprimeBudget = (id) => {
-      if (typeof window === "undefined") return;
-      //verifier si le budget n'a pas des transactions asoocié //supprimer le string après String(id)
-      //index DB
-      getOneDataTodatabase("transaction",{champ:"budgetTrans", valeur:String(id)}, (e) =>{
-        if(e) {
-          alert("Suppression impossible! Ce budget a des transactions associées")
-          return;
-        }
+  // États de chargement et d'erreur
+  const [isLoading, setIsLoading] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const [hasError, setHasError] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
 
-        //dans le cas ou le budget n'a pas encore de transaction on peut le supprimer si l'user confirme
-        if (confirm("Voulez-vous supprimer ce Budget ?")) {
-          
-            DeleteToDB("budget", id, (e) => {
-                if (!e) {
-                    alert("Budget non supprimé. une erreur s'est produite")
-                    return;
-                }
+  // États des modales
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [budgetToEdit, setBudgetToEdit] = useState(null)
+  const [budgetToDelete, setBudgetToDelete] = useState(null)
 
-                //On retire le budget du tableau js (html)
-                const nouveauTableau = listeBudget.filter(item =>
-                    item.id !== id
-                )
+  // Notification Toast
+  const [toast, setToast] = useState(null) // { type: 'success' | 'error', message: string }
 
-                setListeBudget(nouveauTableau);
-            })
-        }
-      })
-    }*/
+  // Initialisation de l'utilisateur connecté
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const infos = RecupInfosUserConnecte()
+    if (infos?.idUser) {
+      setIdUserConnecte(String(infos.idUser))
+    }
+  }, [])
 
-      //realtime db
-     const supprimeBudget = async(id) => {
-      if (typeof window === "undefined") return;
+  // Récupération des données depuis l'API backend
+  const GetBudgetTrans = useCallback(async (isManualRefresh = false) => {
+    const currentId = idUserConnecte || (typeof window !== 'undefined' ? RecupInfosUserConnecte()?.idUser : '')
+    if (!currentId) return
 
-      //realtime db
-      //je supprime en mm temps les transaction du budget s'il confirme
-      if (confirm("Voulez-vous supprimer ce Budget ? NB: Les transactions du Budget seront aussi supprimées")) {
-        //suppression des transactions
-        const req = await axios.get("/server/transaction/get-all")
-        if(!req?.data) return
+    if (isManualRefresh) {
+      setIsRefreshing(true)
+    } else {
+      setIsLoading(true)
+    }
+    setHasError(false)
+    setErrorMessage('')
 
-        if(req?.data){
-          const TransBud=req?.data?.transactions.filter(item => item.budgetTrans===id)
-          //a voir... 
-          const TabIdTrans=TransBud.map(item => item.id)
-          //appel à ma route delete_many pour supprimer les transactions...
-          const supTrans = await axios.delete("/server/transaction/delete-many", {data: { ids: TabIdTrans }})
-          
-          if(!supTrans?.data) return;
-        
-        //suppression du budget
-        const reqB = await axios.delete(`/server/budget/deleteB/${id}`)
+    try {
+      const [reqBudgets, reqTransactions] = await Promise.all([
+        axios.get('/server/budget/get-all'),
+        axios.get('/server/transaction/get-all'),
+      ])
 
-        if(!reqB?.data) return
-        if(reqB?.data?.message==="Budget supprimé"){
-          alert("Budget supprimé avec succès")
-
-          //On retire la tache du tableau js (html)
-          const nouveauTableau = listeBudget.filter(item =>
-            item.id !== id
-          )
-
-          setListeBudget(nouveauTableau);
-        }
-        else{
-          alert("Une erreur s'est produite.")
-        }
+      if (reqBudgets?.data?.budgets) {
+        const tousLesBudgets = reqBudgets.data.budgets
+        const budgetsUtilisateur = tousLesBudgets.filter(
+          (b) => String(b?.idUser || '').trim() === String(currentId).trim()
+        )
+        setListeBudget(budgetsUtilisateur)
+      } else if (reqBudgets?.data?.error || reqBudgets?.data?.message) {
+        setHasError(true)
+        setErrorMessage(reqBudgets?.data?.message || 'Erreur lors du chargement des budgets.')
       }
+
+      if (reqTransactions?.data?.transactions) {
+        setListeTransaction(reqTransactions.data.transactions)
+      }
+    } catch (error) {
+      const errDetail = error?.response?.data?.message || error?.response?.data?.error || error?.message
+      setHasError(true)
+      setErrorMessage(
+        typeof errDetail === 'string'
+          ? errDetail
+          : 'Impossible de joindre le serveur. Vérifiez votre connexion.'
+      )
+    } finally {
+      setIsLoading(false)
+      setIsRefreshing(false)
+    }
+  }, [idUserConnecte, setListeBudget, setListeTransaction])
+
+  // Chargement automatique dès que l'ID utilisateur est prêt
+  useEffect(() => {
+    if (idUserConnecte) {
+      GetBudgetTrans(false)
+    }
+  }, [idUserConnecte, GetBudgetTrans])
+
+  // Gestionnaires de modales
+  const handleOpenCreate = () => {
+    setBudgetToEdit(null)
+    setIsModalOpen(true)
+  }
+
+  const handleOpenEdit = (budget) => {
+    setBudgetToEdit(budget)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setBudgetToEdit(null)
+  }
+
+  // Succès de création ou modification
+  const handleModalSuccess = (savedBudget, isEdit) => {
+    if (isEdit) {
+      setListeBudget((prev) =>
+        prev.map((b) => (b.id === savedBudget.id ? savedBudget : b))
+      )
+      setToast({
+        type: 'success',
+        message: `Le budget "${savedBudget.descriptionBud}" a été modifié avec succès.`,
+      })
+    } else {
+      setListeBudget((prev) => [...prev, savedBudget])
+      setToast({
+        type: 'success',
+        message: `Le budget "${savedBudget.descriptionBud}" a été créé avec succès.`,
+      })
     }
   }
-  
+
+  // Succès de suppression
+  const handleDeleteSuccess = (deletedBudgetId, deletedTransIds = []) => {
+    setListeBudget((prev) => prev.filter((b) => b.id !== deletedBudgetId))
+    if (deletedTransIds.length > 0) {
+      setListeTransaction((prev) =>
+        prev.filter((t) => !deletedTransIds.includes(t.id))
+      )
+    }
+    setToast({
+      type: 'success',
+      message: 'Budget et transactions associées supprimés avec succès.',
+    })
+  }
+
+  // ── Affichage de l'état de chargement (Skeleton) ──────────
+  if (isLoading && (!listeBudget || listeBudget.length === 0)) {
+    return (
+      <div className="w-full">
+        <button className="hidden" onClick={() => GetBudgetTrans(false)} id="RemplirBudTrans" />
+        <BudgetSkeleton />
+      </div>
+    )
+  }
+
+  // ── Affichage de l'état d'erreur critique ─────────────────
+  if (hasError && (!listeBudget || listeBudget.length === 0)) {
+    return (
+      <div className="w-full">
+        <button className="hidden" onClick={() => GetBudgetTrans(false)} id="RemplirBudTrans" />
+        <BudgetErrorState
+          message={errorMessage}
+          onRetry={() => GetBudgetTrans(false)}
+          isRetrying={isLoading}
+        />
+      </div>
+    )
+  }
+
+  const hasBudgets = listeBudget && listeBudget.length > 0
+
   return (
-    <>
-      <button className='hidden' onClick={() => GetBudgetTrans()} id='RemplirBudTrans'></button>
-      {/* La grande grille pour la fenêtre budget*/}
-      <div className='grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-3 '>
+    <div className="w-full space-y-8 animate-fade-in">
+      {/* Bouton masqué préservé pour compatibilité éventuelle */}
+      <button className="hidden" onClick={() => GetBudgetTrans(false)} id="RemplirBudTrans" />
 
-        <div className="col-span-2">
-          {/* Les cartes pour présenter les différents budgets dans une grille - lié à la BASE DE DONNEES */}
+      {/* 1. En-tête de la page */}
+      <BudgetHeader
+        onOpenCreate={handleOpenCreate}
+        onRefresh={() => GetBudgetTrans(true)}
+        isRefreshing={isRefreshing}
+      />
 
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-2 '>
-            {
-              listeBudget?.length > 0 ? (
-                <>
-                  {
-                    listeBudget?.map((leBudget, index) => (
-                      /*listeBudget?.map((leBudget, index)=>(*/
-                      <div key={leBudget?.id || index + 1} className="card bg-base-100 shadow-sm" >
-                        <div className="card-body">
+      {/* 2. Résumé des KPIs budgétaires */}
+      {hasBudgets && (
+        <BudgetSummary
+          listeBudget={listeBudget}
+          listeTransaction={listeTransaction}
+        />
+      )}
 
-                          <div className="p-3 bg-gray-300/50 rounded-md flex flex-col gap-2">
+      {/* 3. Grille des cartes de budgets ou État vide */}
+      {hasBudgets ? (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900">
+              Toutes les enveloppes budgétaires ({listeBudget.length})
+            </h2>
+            <span className="text-xs text-slate-400">
+              Classées par date de création
+            </span>
+          </div>
 
-                            <div className='flex justify-items-center justify-between'>
-                              <h2 className="card-title capitalize">Budget {leBudget?.descriptionBud}</h2>
-                              <span className='text-orange-500 text-lg'> {leBudget?.montantBud.toLocaleString('fr-FR')} FCFA</span>
-                            </div>
-                            <p className='text-gray-800'>{SommeTransactions(leBudget?.id, listeTransaction).Nbr} Transaction(s)   </p>
-
-                          </div>
-
-                          <p className='text-lg'> <span className='font-semibold'>Mois :</span> {new Date(leBudget?.moisBud).toLocaleDateString("fr", { month: "long", year: "numeric" })}</p>
-
-                          <p className='text-red-500 text-md'>{SommeTransactions(leBudget?.id, listeTransaction).Somme.toLocaleString('fr-FR')} FCFA Dépensé</p>
-                          <p className='text-primary text-md'>{SommeTransactions(leBudget?.id, listeTransaction, listeBudget, leBudget?.montantBud).reste.toLocaleString('fr-FR')} FCFA Restant</p>
-
-                          <progress className="progress progress-primary" value={SommeTransactions(leBudget?.id, listeTransaction).Somme} max={leBudget?.montantBud}><span>{((SommeTransactions(leBudget?.id, listeTransaction).Somme) / leBudget?.montantBud) * 100}%</span></progress>
-
-                          <div className="card-actions justify-end justify-items-center">
-                            {/*<label htmlFor="my_modal_6"><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600"></i></label>*/}
-                            <Link href={`/LeBudget/${leBudget?.id}`}> <button><LuEye className='cursor-pointer text-xl text-green-600 mt-1' title='Voir les Transactions' /></button> </Link>
-                            <button onClick={() => openModal(leBudget)}><i className="bi bi-pencil-square cursor-pointer text-lg text-blue-600" title='Modifier Budget'></i></button>
-                            <button onClick={() => supprimeBudget(leBudget?.id)}><i className="bi bi-trash-fill cursor-pointer text-lg text-red-600" title='Supprimer Budget'></i></button>
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  }
-                </>
-              ) :
-                (
-                  <h4 className='text-center'>Aucun Budget enregisté pour le moment</h4>
-                )
-            }
-
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {listeBudget.map((budget) => (
+              <BudgetCard
+                key={budget.id}
+                budget={budget}
+                listeTransaction={listeTransaction}
+                listeBudget={listeBudget}
+                onEdit={handleOpenEdit}
+                onDelete={(b) => setBudgetToDelete(b)}
+              />
+            ))}
           </div>
         </div>
+      ) : (
+        <BudgetEmptyState onOpenCreate={handleOpenCreate} />
+      )}
 
-        <div className='mt-10 lg:mt-0'>
+      {/* 4. Modale de création / modification */}
+      <BudgetModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        budgetToEdit={budgetToEdit}
+        onSuccess={handleModalSuccess}
+      />
 
-          <FormulaireBudg listeBudget={listeBudget} setListeBudget={setListeBudget} />
-        </div>
-      </div>
+      {/* 5. Boîte de confirmation de suppression */}
+      <ConfirmDeleteBudgetModal
+        isOpen={Boolean(budgetToDelete)}
+        onClose={() => setBudgetToDelete(null)}
+        budget={budgetToDelete}
+        onSuccess={handleDeleteSuccess}
+      />
 
-      {/*Modal pour la modification d'un Budget */}
-      <label htmlFor="my_modal_6" id="openModalBTN" className='hidden'></label>
-      {/* Put this part before </body> tag */}
-      <input type="checkbox" id="my_modal_6" className="modal-toggle" />
-      <div className="modal" role="dialog">
-        <div className="modal-box">
-          {/* corps modal de modification */}
-          <FormulaireBudg listeBudget={listeBudget} setListeBudget={setListeBudget} BudgetM={budgetModif} />
-          {/*<div className="modal-action">
-            <label htmlFor="my_modal_6" className="btn">Annuler</label>
-          </div>*/}
-        </div>
-      </div>
-    </>
+      {/* 6. Notifications Toast */}
+      {toast && (
+        <ToastNotification
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </div>
   )
 }
-
-export default FenBudget

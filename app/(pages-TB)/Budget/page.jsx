@@ -1,20 +1,14 @@
-import BudgetIntermd from '@/composants/BudgetIntermd'
 import React from 'react'
+import BudgetIntermd from '@/composants/BudgetIntermd'
 
 export const metadata = {
   title: "Mes Budgets",
-  description: "Gestion Budget",
-};
-
+  description: "Gérez vos enveloppes budgétaires et maîtrisez vos dépenses",
+}
 
 function page() {
-  //const [listeBudget, setListeBudget]=useState([])
-  /*if(!RecupInfosUserConnecte()) {
-    useRouter().push("/")
-  }*/
-
   return (
-    <div className="p-4">
+    <div className="w-full">
       <BudgetIntermd />
     </div>
   )
