@@ -42,7 +42,7 @@ export default function NotFound() {
             <span>Tableau de bord</span>
           </Link>
           <Link
-            href="/"
+            href="/connexion"
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition-colors cursor-pointer"
           >
             <LuArrowLeft className="text-base" aria-hidden="true" />

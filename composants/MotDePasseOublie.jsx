@@ -120,7 +120,7 @@ function MotDePasseOublie() {
 
           {/* Retour connexion */}
           <Link
-            href="/"
+            href="/connexion"
             className="flex items-center gap-2 text-sm text-[#475569] hover:text-[#0f172a] transition-colors font-medium"
           >
             <LuArrowLeft className="text-base" aria-hidden="true" />
@@ -194,7 +194,7 @@ function MotDePasseOublie() {
       {/* Retour */}
       <div className="mt-8 text-center">
         <Link
-          href="/"
+          href="/connexion"
           className="inline-flex items-center gap-2 text-sm text-[#475569] hover:text-[#0f172a] transition-colors font-medium"
         >
           <LuArrowLeft className="text-base" aria-hidden="true" />

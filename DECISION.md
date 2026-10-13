@@ -1458,5 +1458,98 @@ Statut : ✅ Terminé
 
 Statut : ✅ Terminé
 
+---
+
+# Lot 11 — Landing Page publique
+
+## Date
+
+12 octobre 2026
+
+## Objectif
+
+Créer une page d'accueil publique qui est la **première page du projet** (`/`), permettant à tout visiteur de découvrir TopBudget, ses fonctionnalités et ses avantages, et d'accéder facilement aux pages de **connexion** (`/connexion`) et d'**inscription** (`/Inscription`). La logique métier existante n'a pas été touchée.
+
+## Routes créées / modifiées
+
+| Route        | Fichier                       | Rôle                                             |
+| ------------ | ----------------------------- | ------------------------------------------------ |
+| `/`          | `app/page.js`                 | ← **Ancienne connexion → remplacée par LandingPage** |
+| `/connexion` | `app/connexion/page.jsx`      | Nouvelle route pour la page de connexion         |
+
+## Composant créé
+
+| Composant     | Fichier                       | Rôle                                          |
+| ------------- | ----------------------------- | --------------------------------------------- |
+| `LandingPage` | `composants/LandingPage.jsx`  | Page d'accueil publique — Client Component    |
+
+## Architecture retenue
+
+- **Route `/`** → Server Component (`app/page.js`) → import `LandingPage` + export `metadata` SEO.
+- **Route `/connexion`** → Client Component (`app/connexion/page.jsx`) → import `Se_connecter` existant, sans aucune modification de la logique métier.
+- Composant `LandingPage.jsx` → Client Component (`"use client"`) car la navbar nécessite des états React (scroll, menu mobile).
+- Aucune modification de la logique métier Firebase, des API routes ou des composants existants.
+
+## Fichiers modifiés (redirections)
+
+| Fichier                             | Modification                                      |
+| ----------------------------------- | ------------------------------------------------- |
+| `composants/AuthProvider.jsx`       | `router.push("/")` → `router.push("/connexion")`  |
+| `composants/MotDePasseOublie.jsx`   | `href="/"` → `href="/connexion"` (2 occurrences)  |
+| `composants/S_Inscrire.jsx`         | `href="/"` → `href="/connexion"`                  |
+| `composants/LandingPage.jsx`        | `href="/"` (login) → `href="/connexion"`, logo → `href="/"` |
+| `mesFonctions/Deconnexion.js`       | `router.push("/")` → `router.push("/connexion")`  |
+| `app/not-found.jsx`                 | `href="/"` → `href="/connexion"`                  |
+
+## Structure de la page
+
+```text
+LandingPage (route /)
+├── Navbar          (sticky, scroll-aware, responsive — hamburger mobile)
+│   ├── Logo → href="/"
+│   ├── Liens ancres : Fonctionnalités, Avantages, Témoignages
+│   ├── Bouton "Se connecter" → href="/connexion"
+│   └── Bouton "Commencer gratuitement" → href="/Inscription"
+├── HeroSection     (titre, sous-titre, 2 CTA, DashboardMockup illustratif)
+├── FeaturesSection (6 cartes fonctionnalités)
+├── AdvantagesSection (fond vert foncé #14532d, liste avantages, stat cards)
+├── TestimonialsSection (3 témoignages illustratifs)
+├── CtaSection      (bloc final d'appel à l'action)
+└── Footer          (logo, liens /connexion / /Inscription / /mot-de-passe-oublie)
+```
+
+## Design
+
+- **Palette** : Conforme à la charte "Clarté Verte" (DECISION.md §10) — primaire `#16a34a`, dark `#14532d`, fond `#f8fafc`, surfaces blanches, bordures `#e2e8f0`.
+- **Typographie** : Inter héritée du layout racine (`app/layout.js`).
+- **Navbar** : Transparente au départ, glassmorphism (`bg-white/90 backdrop-blur-md`) au scroll, menu mobile slide-in avec `animate-slide-up`.
+- **Hero** : Titre H1 unique, badge animé (dot `animate-pulse`), 2 CTA primaire + secondaire, mockup dashboard décoratif (données fictives d'illustration).
+- **Fonctionnalités** : Grille 1→2→3 colonnes, icônes react-icons Lucide, effet hover scale sur les icônes.
+- **Avantages** : Fond `#14532d`, liste avec `LuCircleCheck`, 4 stat cards glassmorphism.
+- **Témoignages** : Avatars initialisés colorés, citations en italique.
+- **CTA final** : Bloc centré fond `#f0fdf4`, bordure `#bbf7d0`.
+- **Footer** : Fond `#0f172a`, liens vers `/connexion`, `/Inscription`, `/mot-de-passe-oublie`.
+- **Animations** : `animate-fade-in`, `animate-scale-in`, `animate-slide-up` — toutes définies dans `globals.css`, respecte `prefers-reduced-motion`.
+
+## Décisions importantes
+
+- **La route `/` est désormais la landing page** : la connexion se fait via `/connexion`.
+- **`Se_connecter.jsx` non modifié** : le composant est simplement rendu sur une nouvelle route `/connexion`.
+- **Toutes les redirections post-déconnexion** pointent vers `/connexion` (AuthProvider, Deconnexion.js).
+- **Données d'illustration fictives** dans le `DashboardMockup` — clairement distinctes des données réelles Firebase.
+- **Pas de nouvelle dépendance** — uniquement `react-icons/lu` (déjà installé) et les composants Next.js/React natifs.
+- **IDs uniques** sur tous les boutons CTA (`lp-hero-btn-inscription`, `lp-btn-connexion`, etc.).
+- **Accessibilité** : `aria-label` sur les boutons icônes, `aria-hidden` sur les décorations, `aria-expanded` sur le bouton hamburger, contraste WCAG AA.
+- **SEO** : `<h1>` unique dans HeroSection, `<h2>` par section, métadonnées title + description + keywords dans `app/page.js`.
+
+## Responsive
+
+- Mobile (< 640px) : Navbar hamburger, sections en 1 colonne, Hero texte centré, mockup pleine largeur.
+- Tablette (640px – 1024px) : Grille 2 colonnes pour fonctionnalités et témoignages, flex-row pour CTA.
+- Desktop (≥ 1024px) : Navbar desktop, Hero 2 colonnes (texte + mockup), toutes grilles à 3 colonnes.
+
+## Statut
+
+✅ Terminé
 
 

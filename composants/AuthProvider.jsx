@@ -33,14 +33,14 @@ function AuthProvider({ children }) {
     setInfosUser(infos)
     
     if (!infos) {
-      router.push("/")
+      router.push("/connexion")
       return
     }
 
     // 2. Vérification côté Firebase
     const unsubscribe = onAuthStateChanged(InitAuth, (user) => {
       if (!user) {
-        router.push("/")
+        router.push("/connexion")
       } else {
         setFirebaseUser(user)
       }
@@ -58,14 +58,14 @@ function AuthProvider({ children }) {
         localStorage.removeItem('user')
         localStorage.removeItem('InfosUser')
       }
-      router.push('/')
+      router.push('/connexion')
     } catch (error) {
       console.error("Erreur lors de la déconnexion :", error)
       if (typeof window !== "undefined") {
         localStorage.removeItem('user')
         localStorage.removeItem('InfosUser')
       }
-      router.push('/')
+      router.push('/connexion')
     }
   }
 

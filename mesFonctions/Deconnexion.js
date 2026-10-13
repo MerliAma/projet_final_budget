@@ -7,7 +7,7 @@ export const Deconnexion=(etat)=> {
   
     if(etat===true){
     const router=useRouter()
-    router.push("/")
+    router.push("/connexion")
     if(RecupInfosUserConnecte()){
         localStorage.removeItem("InfosUser")
     } 

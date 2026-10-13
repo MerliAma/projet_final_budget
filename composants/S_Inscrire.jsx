@@ -270,7 +270,7 @@ function S_Inscrire() {
       <p className="text-center text-sm text-[#475569] mt-8">
         Vous avez déjà un compte ?{" "}
         <Link
-          href="/"
+          href="/connexion"
           id="lien-connexion"
           className="text-[#16a34a] hover:text-[#15803d] font-semibold transition-colors"
         >
