@@ -14,7 +14,7 @@ export const POST = async (req) => {
 
         //On ajoute la transaction dans la base de données dans la collection transaction
         const trans = await axios.post(
-            `${process.env.db_url}/transaction.json`,
+            `${process.env.db_url}/transaction.json?auth=${process.env.db_secret}`,
             { descriptionTrans, montantTrans, dateEnrg, budgetTrans}
         )
 

@@ -14,6 +14,7 @@ import RecentTransactions from './dashboard/RecentTransactions'
 import DashboardSkeleton from './dashboard/DashboardSkeleton'
 import DashboardEmpty from './dashboard/DashboardEmpty'
 import DashboardError from './dashboard/DashboardError'
+import RecommandationsIA from './ia/RecommandationsIA'
 
 /**
  * TableauBord — Refonte UI/UX du tableau de bord principal (Lots 3 & 4)
@@ -174,7 +175,13 @@ function TableauBord({ listeBudget = [], setListeBudget, listeTransaction = [], 
         nombreBudgets={listeBudget.length} 
       />
 
-      {/* 3. Grille 2 colonnes : Vue synthétique des budgets + Graphique de répartition */}
+      {/* 3. Recommandations et analyse IA des mouvements de budget */}
+      <RecommandationsIA 
+        listeBudget={listeBudget} 
+        listeTransaction={listeTransaction} 
+      />
+
+      {/* 4. Grille 2 colonnes : Vue synthétique des budgets + Graphique de répartition */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         {/* Budgets (2 colonnes sur grand écran) */}
         <div className="lg:col-span-2">

@@ -19,7 +19,7 @@ export default function DashboardError({ onRetry, isRetrying, message }) {
         {message ? (
           <>
             Une interruption est survenue lors de l'accès à la base de données :<br />
-            <span className="font-semibold text-red-600 mt-1 inline-block">{message}</span>
+            <span className="font-semibold text-red-600 mt-1 inline-block">Accès refusé! Voir les règles de sécurité</span> {/*{message} */}
           </>
         ) : (
           "Une interruption est survenue lors de la récupération de vos informations financières. Vérifiez votre connexion internet puis réessayez."

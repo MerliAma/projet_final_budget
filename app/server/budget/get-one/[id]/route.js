@@ -8,7 +8,7 @@ export const GET = async (req, { params }) => {
         const { id } = await params 
 
         //On recupere le produit dans la db
-        const budget = await axios.get(`${process.env.db_url}/budget/${id}.json`)
+        const budget = await axios.get(`${process.env.db_url}/budget/${id}.json?auth=${process.env.db_secret}`)
 
         return NextResponse.json({ budget: {id, ...budget.data} })
 

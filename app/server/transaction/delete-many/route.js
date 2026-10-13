@@ -18,7 +18,7 @@ export const DELETE = async (req) => {
             updates[`transaction/${id}`] = null // updates[`transaction/${id}`] signifie: « utilise la valeur contenue dans cette expression comme nom de propriété de l'objet ».
         });
     
-        await axios.patch(`${process.env.db_url}/.json`,updates );
+        await axios.patch(`${process.env.db_url}/.json?auth=${process.env.db_secret}`,updates );
 
         return NextResponse.json({message: "sup"});
         

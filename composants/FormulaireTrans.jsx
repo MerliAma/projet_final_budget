@@ -285,15 +285,13 @@ function FormulaireTrans({
         </div>
       </form>
 
-      {/* Messages de retour */}
+      {/* Messages de retour — toast flottant en position absolue/fixe (aucun défilement requis) */}
       {rep !== null && (
-        <div className="mt-4">
-          {rep ? (
-            <MessageOk message="Transaction enregistrée avec succès" onClose={() => setRep(null)} />
-          ) : (
-            <MessageErreur message="Une erreur s'est produite lors de l'enregistrement" onClose={() => setRep(null)} />
-          )}
-        </div>
+        rep ? (
+          <MessageOk message="Transaction enregistrée avec succès" onClose={() => setRep(null)} />
+        ) : (
+          <MessageErreur message="Une erreur s'est produite lors de l'enregistrement" onClose={() => setRep(null)} />
+        )
       )}
 
       {/* Bouton masqué pour rétro-compatibilité */}

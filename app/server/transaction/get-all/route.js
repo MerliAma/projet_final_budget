@@ -5,7 +5,7 @@ import { NextResponse } from "next/server"
 export const GET = async (req) => {
     try {
         const cleanUrl = (process.env.db_url || "").replace(/\/+$/, "")
-        const trans = await axios.get(`${cleanUrl}/transaction.json`) 
+        const trans = await axios.get(`${cleanUrl}/transaction.json?auth=${process.env.db_secret}`) 
         
         if (!trans?.data) {
             return NextResponse.json({ transactions: [] })

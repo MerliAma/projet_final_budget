@@ -8,9 +8,9 @@ export const GET = async (req, { params }) => {
         const { id } = await params 
 
         //On recupere le produit dans la db
-        const trans = await axios.get(`${process.env.db_url}/transaction/${id}.json`)
+        const trans = await axios.get(`${process.env.db_url}/transaction/${id}.json?auth=${process.env.db_secret}`)
 
-        return NextResponse.json({ transaction: {id, ...budget.data} })
+        return NextResponse.json({ transaction: {id, ...trans.data} })
 
     } catch (error) {
        console.log(error)

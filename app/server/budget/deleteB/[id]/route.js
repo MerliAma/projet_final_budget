@@ -8,7 +8,7 @@ export const DELETE = async (req, { params }) => {
         const { id } = await params 
 
         // On vérifie si le budget existe
-        const BudgetExiste = await axios.get( `${process.env.db_url}/budget/${id}.json` )
+        const BudgetExiste = await axios.get( `${process.env.db_url}/budget/${id}.json?auth=${process.env.db_secret}` )
 
         if (!BudgetExiste.data) {
             return NextResponse.json(
@@ -18,7 +18,7 @@ export const DELETE = async (req, { params }) => {
         }
 
         //On SUPPRIME dans la db s'il existe
-        const budget = await axios.delete(`${process.env.db_url}/budget/${id}.json`)
+        const budget = await axios.delete(`${process.env.db_url}/budget/${id}.json?auth=${process.env.db_secret}`)
 
         return NextResponse.json({ message: "Budget supprimé" })
 

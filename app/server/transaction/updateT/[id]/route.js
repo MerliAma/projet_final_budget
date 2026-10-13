@@ -13,7 +13,7 @@ export const PATCH = async (req, { params }) => {
         if(!id || id === "") return NextResponse.json({message: "Selectionner unne transaction"});
 
         // On vérifie si le budget existe
-        const transExiste = await axios.get( `${process.env.db_url}/transaction/${id}.json` )
+        const transExiste = await axios.get( `${process.env.db_url}/transaction/${id}.json?auth=${process.env.db_secret}` )
 
         if (!transExiste.data) {
             return NextResponse.json(
@@ -23,7 +23,7 @@ export const PATCH = async (req, { params }) => {
         }
 
 
-        const trans = await axios.patch(`${process.env.db_url}/transaction/${id}.json`,{ descriptionTrans, montantTrans} )
+        const trans = await axios.patch(`${process.env.db_url}/transaction/${id}.json?auth=${process.env.db_secret}`,{ descriptionTrans, montantTrans} )
 
         return NextResponse.json({message: "Modification effectuée" })
 

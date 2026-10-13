@@ -14,7 +14,7 @@ export const POST = async (req) => {
 
         //On ajoute le budget dans la base de données dans la collection budget
         const budget = await axios.post(
-            `${process.env.db_url}/budget.json`,
+            `${process.env.db_url}/budget.json?auth=${process.env.db_secret}`,
             {descriptionBud, montantBud, moisBud, dateEnrg, idUser}
         )
 

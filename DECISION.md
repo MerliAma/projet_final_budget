@@ -1552,4 +1552,69 @@ LandingPage (route /)
 
 ✅ Terminé
 
+---
+
+# Lot 12 — Recommandations IA et Analyse Intelligente des Mouvements de Budget
+
+## Date
+
+13 octobre 2026
+
+## Objectif
+
+Concevoir et intégrer un moteur d'analyse financière intelligent capable d'analyser en profondeur les différents mouvements du budget de l'utilisateur (budgets alloués, dépenses enregistrées, calendrier mensuel, vitesse de consommation, postes déficitaires ou excédentaires, transactions dominantes et micro-dépenses) afin de formuler des recommandations personnalisées, claires, percutantes et concrètement actionnables, tout en évitant toute présentation surchargée.
+
+## Architecture retenue
+
+1. **Moteur d'analyse financière (`mesFonctions/analyserMouvementsBudget.js`)** :
+   - Fonction pure et autonome `analyserMouvementsBudget(listeBudget, listeTransaction)`.
+   - Calcul des métriques temporelles et journalières (jours écoulés vs restants, part du mois écoulée).
+   - Rapprochement relationnel des transactions aux budgets de l'utilisateur connecté via lookup indexé (`Set`).
+   - Algorithmes d'analyse prédictive et comportementale :
+     - **Détection des dépassements avérés** : calcul du déficit exact en FCFA, proposition de réallocation ciblée depuis un budget excédentaire disponible.
+     - **Analyse du rythme de consommation (burn-rate journalier)** : détection d'une consommation trop rapide par rapport à l'avancement du mois, recommandation d'un plafond quotidien sécurisé en FCFA/jour.
+     - **Identification des opérations majeures (outliers)** : alerte lorsqu'une dépense unique absorbe plus de 45% de l'enveloppe totale d'un budget.
+     - **Détection de fréquence et micro-dépenses** : identification de l'accumulation de petits montants grignotant l'enveloppe.
+     - **Opportunités d'épargne proactive** : projection du surplus disponible et suggestion de versement sur une épargne de précaution.
+     - **Renforcement positif / Félicitations** : mise en valeur des catégories exemplaires dont les dépenses respectent la trajectoire prévisionnelle.
+   - **Score de Résilience Financière IA (0 à 100)** : indicateur global pondéré tenant compte des dépassements, de la vitesse de dépense, du ratio d'enveloppes saines et des marges de sécurité.
+
+2. **Composants d'interface épurés (`composants/ia/`)** :
+   - `RecommandationsIA.jsx` : Conteneur principal modulaire s'intégrant au Tableau de Bord (`/TableauBord`).
+     - En-tête sobre avec icône `LuSparkles`, titre clair, pastille de Score IA (`Score IA : X/100`) et jauge de résilience fine.
+     - Bouton de bascule **Réduire / Afficher** permettant à l'utilisateur de replier les conseils en un clic s'il préfère une vue minimale.
+     - Bouton de réanalyse interactive avec micro-animation d'actualisation.
+     - Filtres contextuels par pilules (`Toutes`, `Alertes`, `Vigilance`, `Opportunités`, `Comportement`).
+     - **Prévention de la surcharge visuelle** : affichage limité aux 3 recommandations les plus prioritaires par défaut, avec bouton sobre `"Afficher les N autres recommandations"`.
+   - `RecommandationCard.jsx` : Carte individuelle de recommandation avec hiérarchie soignée :
+     - Badge de catégorie avec puce colorée et icône dédiée (`react-icons/lu`).
+     - Chiffre clé saillant à droite (ex: `-15 000 FCFA`, `85% consommé`, `+32 000 FCFA`).
+     - Titre explicite et message personnalisé intégrant les noms réels des budgets et transactions.
+     - Bloc "Conseil IA" avec icône ampoule `LuLightbulb` et directive d'action concrète.
+     - Bouton d'action directe (`/LeBudget/[id]`, `/Budget`, etc.).
+
+## Intégration et décision UX
+
+- **Emplacement exclusif sur le Tableau de Bord ([TableauBord.jsx](file:///d:/GOMYCODE/projet_final_budget/composants/TableauBord.jsx))** : Inséré harmonieusement entre les 4 cartes KPI principales (`DashboardStats`) et la synthèse des budgets/graphique (`BudgetOverview` & `DashboardChart`).
+- **Retrait délibéré des Statistiques ([Statistiques.jsx](file:///d:/GOMYCODE/projet_final_budget/composants/Statistiques.jsx))** : Pour respecter scrupuleusement la règle d'éviter toute surcharge et éliminer les doublons cognitifs, la page Statistiques conserve son rôle d'analyse purement visuelle et rétrospective (KPIs, Donut de répartition, histogramme d'évolution et tableau de performance). Le Tableau de Bord reste le lieu unique du pilotage préventif en temps réel.
+
+## Conformité Design System (DECISION.md)
+
+- Palette "Clarté Verte" : Vert émeraude `#16a34a`, vert foncé `#14532d`, fond `#ffffff`, surfaces secondaires `#f8fafc`, bordures `#e2e8f0` / `border-slate-200/80`.
+- Typographie Inter, montants en FCFA, arrondis `rounded-2xl` et `rounded-xl`, ombres subtiles `shadow-xs hover:shadow-sm`.
+- Accessibilité : attributs ARIA complets (`role="progressbar"`, `aria-valuenow`, `aria-label`, `aria-expanded`).
+- Responsive complet : cartes empilées en 1 colonne sur mobile (< 768px), 2 colonnes sur tablette, 3 colonnes sur desktop.
+
+## Tests effectués
+
+- Compilation Turbopack (`npm.cmd run build`) validée avec succès sans aucune erreur.
+- Vérification des calculs analytiques (dépassements, rythme journalier, outliers, épargne, score 0-100).
+- Vérification des états : avec données mixtes, avec budgets équilibrés, et état initial sans budget.
+- Vérification des bascules d'affichage (filtres, réduction/dépliage, affichage progressif).
+
+## Statut
+
+✅ Terminé
+
+
 

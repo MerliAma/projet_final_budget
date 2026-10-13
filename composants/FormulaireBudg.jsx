@@ -200,15 +200,13 @@ function FormulaireBudg({ listeBudget = [], setListeBudget, BudgetM }) {
         </div>
       </form>
 
-      {/* Messages de retour */}
+      {/* Messages de retour — toast flottant en position absolue/fixe (aucun défilement requis) */}
       {rep !== null && (
-        <div className="mt-4">
-          {rep ? (
-            <MessageOk message="Budget enregistré avec succès" onClose={() => setRep(null)} />
-          ) : (
-            <MessageErreur message="Une erreur s'est produite lors de l'enregistrement" onClose={() => setRep(null)} />
-          )}
-        </div>
+        rep ? (
+          <MessageOk message="Budget enregistré avec succès" onClose={() => setRep(null)} />
+        ) : (
+          <MessageErreur message="Une erreur s'est produite lors de l'enregistrement" onClose={() => setRep(null)} />
+        )
       )}
 
       {/* Élément caché conservé pour rétro-compatibilité */}

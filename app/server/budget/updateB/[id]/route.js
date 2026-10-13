@@ -13,7 +13,7 @@ export const PATCH = async (req, { params }) => {
         if(!id || id === "") return NextResponse.json({message: "Selectionner un Budget"});
 
         // On vérifie si le budget existe
-        const budgetExiste = await axios.get( `${process.env.db_url}/budget/${id}.json` )
+        const budgetExiste = await axios.get( `${process.env.db_url}/budget/${id}.json?auth=${process.env.db_secret}` )
 
         if (!budgetExiste.data) {
             return NextResponse.json(
@@ -23,7 +23,7 @@ export const PATCH = async (req, { params }) => {
         }
 
 
-        const budget = await axios.patch(`${process.env.db_url}/budget/${id}.json`,{  descriptionBud, montantBud, moisBud } )
+        const budget = await axios.patch(`${process.env.db_url}/budget/${id}.json?auth=${process.env.db_secret}`,{  descriptionBud, montantBud, moisBud } )
 
         return NextResponse.json({message: "Modification effectuée" })
 

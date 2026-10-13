@@ -8,7 +8,7 @@ export const DELETE = async (req, { params }) => {
         const { id } = await params 
 
         // On vérifie si la transaction existe
-        const transExiste = await axios.get( `${process.env.db_url}/transaction/${id}.json` )
+        const transExiste = await axios.get( `${process.env.db_url}/transaction/${id}.json?auth=${process.env.db_secret}` )
 
         if (!transExiste.data) {
             return NextResponse.json(
@@ -18,7 +18,7 @@ export const DELETE = async (req, { params }) => {
         }
 
         //On SUPPRIME dans la db s'il existe
-        const trans = await axios.delete(`${process.env.db_url}/transaction/${id}.json`)
+        const trans = await axios.delete(`${process.env.db_url}/transaction/${id}.json?auth=${process.env.db_secret}`)
 
         return NextResponse.json({ message: "Transaction supprimée" })
 
