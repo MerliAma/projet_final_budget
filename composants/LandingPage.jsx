@@ -14,7 +14,9 @@ import {
   LuMenu,
   LuX,
   LuCircleCheck,
+  LuMessageSquare,
 } from 'react-icons/lu'
+import ChatbotKing from '@/composants/chatbot/ChatbotKing'
 
 /* ─────────────────────────────────────────────────────────────────────────────
    LandingPage
@@ -110,7 +112,7 @@ const ADVANTAGES = [
 ]*/
 
 // ── Composant NavBar ────────────────────────────────────────────────────────
-function Navbar() {
+function Navbar({ onOpenChat }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
@@ -157,6 +159,18 @@ function Navbar() {
 
         {/* CTA desktop */}
         <div className="hidden md:flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onOpenChat}
+            id="lp-nav-btn-chat-king"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 bg-[#f0fdf4] hover:bg-[#dcfce7] border border-[#bbf7d0] px-3 py-2 rounded-xl transition-all shadow-2xs hover:shadow-xs active:scale-[0.98]"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600"></span>
+            </span>
+            Assistant King
+          </button>
           <Link
             href="/connexion"
             id="lp-btn-connexion"
@@ -203,13 +217,6 @@ function Navbar() {
           >
             Avantages
           </a>
-          {/*<a
-            href="#temoignages"
-            className="text-sm font-medium text-slate-700 py-2 border-b border-slate-100"
-            onClick={() => setMenuOpen(false)}
-          >
-            Témoignages
-          </a> */}
           <a
             href="#demarrer"
             className="text-sm font-medium text-slate-700 py-2 border-b border-slate-100"
@@ -218,8 +225,19 @@ function Navbar() {
             Demarrer
           </a>
           <div className="flex flex-col gap-2 pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false)
+                onOpenChat?.()
+              }}
+              className="text-center text-sm font-semibold text-emerald-800 bg-[#f0fdf4] border border-[#bbf7d0] py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+              Discuter avec l&apos;assistant King
+            </button>
             <Link
-              href="/"
+              href="/connexion"
               id="lp-btn-connexion-mobile"
               className="text-center text-sm font-semibold text-slate-700 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors"
             >
@@ -313,7 +331,7 @@ function DashboardMockup() {
 }
 
 // ── Section Hero ─────────────────────────────────────────────────────────────
-function HeroSection() {
+function HeroSection({ onOpenChat }) {
   return (
     <section className="relative pt-24 pb-16 sm:pt-32 sm:pb-24 overflow-hidden bg-[#f8fafc]">
 
@@ -356,17 +374,29 @@ function HeroSection() {
                 Créer mon compte gratuitement
                 <LuArrowRight className="text-lg" aria-hidden="true" />
               </Link>
+              {/*<button
+                type="button"
+                onClick={onOpenChat}
+                id="lp-hero-btn-chat-king"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl text-base font-semibold text-[#14532d] bg-[#f0fdf4] hover:bg-[#dcfce7] border border-[#bbf7d0] transition-all shadow-xs hover:shadow-sm active:scale-[0.98]"
+              >
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+                </span>
+                Discuter avec l&apos;assistant King
+              </button>*/}
               <Link
-                href="/"
+                href="/connexion"
                 id="lp-hero-btn-connexion"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl text-base font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all shadow-xs"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl text-base font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all shadow-xs"
               >
                 Se connecter
               </Link>
             </div>
 
             <p className="mt-6 text-xs text-slate-400 font-medium">
-              Aucune carte bancaire requise · Accès immédiat
+              Aucune carte bancaire requise · Accès immédiat · Assistance par King en direct
             </p>
           </div>
 
@@ -548,7 +578,7 @@ function AdvantagesSection() {
 }*/
 
 // ── Section CTA final ────────────────────────────────────────────────────────
-function CtaSection() {
+function CtaSection({ onOpenChat }) {
   return (
     <section className="py-16 sm:py-24 bg-white" id="demarrer">
       <div className="max-w-3xl mx-auto px-5 sm:px-8 text-center">
@@ -572,8 +602,17 @@ function CtaSection() {
               Créer mon compte gratuitement
               <LuArrowRight className="text-lg" aria-hidden="true" />
             </Link>
+            <button
+              type="button"
+              onClick={onOpenChat}
+              id="lp-cta-btn-chat-king"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl text-base font-semibold text-emerald-800 bg-white hover:bg-emerald-50/80 border border-emerald-300 transition-all shadow-xs"
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
+              Discuter avec King
+            </button>
             <Link
-              href="/"
+              href="/connexion"
               id="lp-cta-btn-connexion"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-200 transition-all shadow-xs"
             >
@@ -624,17 +663,23 @@ function Footer() {
 
 // ── Export principal ─────────────────────────────────────────────────────────
 export default function LandingPage() {
+  const [isChatOpen, setIsChatOpen] = useState(false)
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
+    <div className="min-h-screen flex flex-col relative">
+      <Navbar onOpenChat={() => setIsChatOpen(true)} />
       <main className="flex-1">
-        <HeroSection />
+        <HeroSection onOpenChat={() => setIsChatOpen(true)} />
         <FeaturesSection />
         <AdvantagesSection />
         { /*<TestimonialsSection />*/}
-        <CtaSection />
+        <CtaSection onOpenChat={() => setIsChatOpen(true)} />
       </main>
       <Footer />
+
+      {/* Chatbot IA King 100% responsive avec cascade Gemini -> Mistral -> OpenRouter */}
+      <ChatbotKing isOpen={isChatOpen} setIsOpen={setIsChatOpen} />
     </div>
   )
 }
+
