@@ -1,5 +1,5 @@
 "use client"
-import React from 'react'
+import React, { useMemo } from 'react'
 import Link from 'next/link'
 import { 
   LuArrowUpRight, 
@@ -11,11 +11,81 @@ import {
 import { SommeTransactions } from '@/mesFonctions/SommeMontant'
 
 /**
- * BudgetOverview — Vue synthétique des budgets
- * Affiche chaque budget avec son nom, mois, montant alloué, dépensé, restant,
+ * BudgetOverview — Vue synthétique des budgets les plus actifs
+ * Affiche les 3 budgets les plus actifs avec leur nom, mois, montant alloué, dépensé, restant,
  * une jauge de progression et un indicateur multi-critères (couleur + icône + texte).
  */
 export default function BudgetOverview({ listeBudget = [], listeTransaction = [] }) {
+  // Sélection et tri des 3 budgets les plus actifs
+  const budgetsLesPlusActifs = useMemo(() => {
+    if (!Array.isArray(listeBudget) || listeBudget.length === 0) return []
+
+    // Indexation des transactions par budget pour déterminer l'activité
+    const transactionsParBudget = new Map()
+    if (Array.isArray(listeTransaction)) {
+      listeTransaction.forEach((t) => {
+        const bId = String(t.budgetTrans)
+        if (!transactionsParBudget.has(bId)) {
+          transactionsParBudget.set(bId, [])
+        }
+        transactionsParBudget.get(bId).push(t)
+      })
+    }
+
+    const budgetsAvecStats = listeBudget.map((budget) => {
+      // Calcul des montants via la fonction métier SommeTransactions
+      const calculs = SommeTransactions(budget.id, listeTransaction, listeBudget, budget.montantBud)
+      const depense = calculs?.Somme || 0
+      const nombreTrans = calculs?.Nbr || 0
+      const alloue = Number(budget.montantBud || 0)
+      const reste = calculs?.reste !== undefined ? calculs.reste : (alloue - depense)
+      const pourcentage = alloue > 0 ? Math.round((depense / alloue) * 100) : 0
+
+      // Recherche de la date d'opération la plus récente
+      const transDuBudget = transactionsParBudget.get(String(budget.id)) || []
+      let derniereActivite = 0
+      for (const t of transDuBudget) {
+        const d = new Date(t.dateEnrg || 0).getTime()
+        if (d > derniereActivite) {
+          derniereActivite = d
+        }
+      }
+
+      // Si aucune transaction, date de repli basée sur la création ou le mois du budget
+      const dateFallback = new Date(budget.dateEnrg || budget.moisBud || 0).getTime()
+
+      return {
+        budget,
+        depense,
+        alloue,
+        reste,
+        pourcentage,
+        nombreTrans,
+        derniereActivite: derniereActivite || dateFallback
+      }
+    })
+
+    // Tri par ordre d'activité :
+    // 1. Nombre de transactions décroissant (opérations enregistrées)
+    // 2. Date de dernière transaction décroissante (récence de l'activité)
+    // 3. Montant dépensé décroissant
+    // 4. Montant alloué décroissant
+    return budgetsAvecStats
+      .sort((a, b) => {
+        if (b.nombreTrans !== a.nombreTrans) {
+          return b.nombreTrans - a.nombreTrans
+        }
+        if (b.derniereActivite !== a.derniereActivite) {
+          return b.derniereActivite - a.derniereActivite
+        }
+        if (b.depense !== a.depense) {
+          return b.depense - a.depense
+        }
+        return b.alloue - a.alloue
+      })
+      .slice(0, 3)
+  }, [listeBudget, listeTransaction])
+
   if (!listeBudget || listeBudget.length === 0) {
     return null
   }
@@ -31,7 +101,9 @@ export default function BudgetOverview({ listeBudget = [], listeTransaction = []
             <span>Synthèse des budgets</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Consommation et montants restants par catégorie
+            {listeBudget.length > 5 
+              ? `Top 3 des budgets les plus actifs (${listeBudget.length} au total)`
+              : 'Consommation et montants restants par catégorie'}
           </p>
         </div>
 
@@ -39,21 +111,14 @@ export default function BudgetOverview({ listeBudget = [], listeTransaction = []
           href="/Budget"
           className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
         >
-          <span>Gérer les budgets</span>
+          <span>{listeBudget.length > 3 ? `Voir tout (${listeBudget.length})` : 'Gérer les budgets'}</span>
           <LuArrowUpRight className="text-sm" aria-hidden="true" />
         </Link>
       </div>
 
-      {/* ── Liste des budgets ─────────────────────────────── */}
+      {/* ── Liste des 3 budgets les plus actifs ────────────── */}
       <div className="space-y-4">
-        {listeBudget.map((budget) => {
-          // Calcul des montants via la fonction métier existante SommeTransactions
-          const calculs = SommeTransactions(budget.id, listeTransaction, listeBudget, budget.montantBud)
-          const depense = calculs?.Somme || 0
-          const alloue = Number(budget.montantBud || 0)
-          const reste = alloue - depense
-          const pourcentage = alloue > 0 ? Math.round((depense / alloue) * 100) : 0
-
+        {budgetsLesPlusActifs.map(({ budget, depense, alloue, reste, pourcentage, nombreTrans }) => {
           // Détermination de l'état budgétaire multi-critères (Couleur + Icône + Texte)
           let statusConfig = {
             label: 'Sous contrôle',
@@ -97,7 +162,7 @@ export default function BudgetOverview({ listeBudget = [], listeTransaction = []
             >
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2.5">
                 
-                {/* Nom du budget et mois */}
+                {/* Nom du budget, mois et nombre d'opérations */}
                 <div className="flex items-center gap-2 min-w-0">
                   <Link 
                     href={`/LeBudget/${budget.id}`}
@@ -108,6 +173,11 @@ export default function BudgetOverview({ listeBudget = [], listeTransaction = []
                   {moisFormate && (
                     <span className="text-xs text-slate-400 capitalize shrink-0">
                       • {moisFormate}
+                    </span>
+                  )}
+                  {nombreTrans > 0 && (
+                    <span className="text-[11px] font-medium text-slate-500 bg-slate-200/60 px-2 py-0.5 rounded-full shrink-0">
+                      {nombreTrans} op.
                     </span>
                   )}
                 </div>
@@ -162,6 +232,20 @@ export default function BudgetOverview({ listeBudget = [], listeTransaction = []
           )
         })}
       </div>
+
+      {/* ── Pied de section si plus de 5 budgets ────────────── */}
+      {listeBudget.length > 5 && (
+        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>Affichage de 5 budgets sur {listeBudget.length}</span>
+          <Link 
+            href="/Budget" 
+            className="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1"
+          >
+            <span>Consulter tous les budgets</span>
+            <LuArrowUpRight className="text-xs" aria-hidden="true" />
+          </Link>
+        </div>
+      )}
 
     </div>
   )

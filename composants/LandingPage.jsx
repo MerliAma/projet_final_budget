@@ -626,7 +626,7 @@ function CtaSection({ onOpenChat }) {
 }
 
 // ── Footer ───────────────────────────────────────────────────────────────────
-function Footer() {
+function Footer({ onOpenChat }) {
   return (
     <footer className="bg-[#0f172a] text-white py-10">
       <div className="max-w-6xl mx-auto px-5 sm:px-8">
@@ -647,6 +647,13 @@ function Footer() {
             <Link href="/Inscription" className="hover:text-white transition-colors">
               Inscription
             </Link>
+            <button
+              type="button"
+              onClick={onOpenChat}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Contacter l&apos;équipe
+            </button>
             <Link href="/mot-de-passe-oublie" className="hover:text-white transition-colors">
               Mot de passe oublié
             </Link>
@@ -675,7 +682,8 @@ export default function LandingPage() {
         { /*<TestimonialsSection />*/}
         <CtaSection onOpenChat={() => setIsChatOpen(true)} />
       </main>
-      <Footer />
+      <Footer onOpenChat={() => setIsChatOpen(true)} />
+
 
       {/* Chatbot IA King 100% responsive avec cascade Gemini -> Mistral -> OpenRouter */}
       <ChatbotKing isOpen={isChatOpen} setIsOpen={setIsChatOpen} />

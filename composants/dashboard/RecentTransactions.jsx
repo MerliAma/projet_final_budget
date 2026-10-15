@@ -24,7 +24,7 @@ export default function RecentTransactions({ listeBudget = [], listeTransaction 
   // Filtrage des transactions appartenant aux budgets de l'utilisateur
   const userTransactions = React.useMemo(() => {
     if (!Array.isArray(listeTransaction)) return []
-    
+
     return listeTransaction
       .filter((t) => budgetMap.has(String(t.budgetTrans)))
       .map((t) => ({
@@ -32,12 +32,12 @@ export default function RecentTransactions({ listeBudget = [], listeTransaction 
         budget: budgetMap.get(String(t.budgetTrans))
       }))
       .sort((a, b) => new Date(b.dateEnrg || 0) - new Date(a.dateEnrg || 0))
-      .slice(0, 10)
+      .slice(0, 5) //les 5 derniers budgets
   }, [listeTransaction, budgetMap])
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-xs">
-      
+
       {/* ── En-tête ──────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -46,7 +46,7 @@ export default function RecentTransactions({ listeBudget = [], listeTransaction 
             <span>Dernières transactions</span>
           </h2>
           <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-            Historique des 10 opérations les plus récentes
+            Historique des 5 opérations les plus récentes
           </p>
         </div>
 
@@ -118,7 +118,7 @@ export default function RecentTransactions({ listeBudget = [], listeTransaction 
               const montant = Number(t.montantTrans || 0)
 
               return (
-                <div 
+                <div
                   key={t.id || `recent-card-${idx}`}
                   className="p-3.5 rounded-xl border border-slate-100 bg-slate-50/60 flex items-center justify-between gap-3"
                 >

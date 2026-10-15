@@ -7,7 +7,9 @@ import {
   LuRotateCcw,
   LuSparkles,
   LuCheck,
+  LuMail,
 } from 'react-icons/lu'
+import ContactKingForm from './ContactKingForm'
 
 // Message d'accueil officiel de King
 const WELCOME_MESSAGE = {
@@ -20,6 +22,7 @@ const WELCOME_MESSAGE = {
 
 // Suggestions de questions rapides
 const QUICK_QUESTIONS = [
+  "✉️ Envoyer un e-mail à TopBudget",
   "Comment fonctionnent les enveloppes de budget ?",
   "Est-ce que l'application est payante ?",
   "Comment fonctionne le score de santé financière ?",
@@ -108,6 +111,7 @@ export default function ChatbotKing({ isOpen = false, setIsOpen = () => {} }) {
   const [inputText, setInputText] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [isContactOpen, setIsContactOpen] = useState(false)
   const messagesEndRef = useRef(null)
   const inputRef = useRef(null)
 
@@ -160,6 +164,17 @@ export default function ChatbotKing({ isOpen = false, setIsOpen = () => {} }) {
   const handleSend = async (textToSend) => {
     const query = (textToSend || inputText).trim()
     if (!query || isLoading) return
+
+    // Si l'utilisateur clique sur la suggestion d'envoi d'e-mail
+    if (
+      query === "✉️ Envoyer un e-mail à TopBudget" ||
+      query.toLowerCase() === "envoyer un e-mail à topbudget" ||
+      query.toLowerCase() === "écrire à l'équipe"
+    ) {
+      setInputText('')
+      setIsContactOpen(true)
+      return
+    }
 
     setInputText('')
 
@@ -320,6 +335,23 @@ export default function ChatbotKing({ isOpen = false, setIsOpen = () => {} }) {
 
             {/* Actions d'entête */}
             <div className="flex items-center gap-1">
+              {/* Bouton Envoyer un email / Écrire à l'équipe */}
+              <button
+                type="button"
+                onClick={() => setIsContactOpen((prev) => !prev)}
+                id="btn-toggle-contact-king"
+                title={isContactOpen ? "Revenir à la discussion" : "Envoyer un e-mail à l'équipe TopBudget"}
+                aria-label="Envoyer un e-mail à l'équipe TopBudget"
+                className={`p-2 rounded-xl text-white/90 hover:text-white transition-all text-sm flex items-center gap-1.5 ${
+                  isContactOpen ? 'bg-white/25 shadow-inner font-semibold' : 'hover:bg-white/15'
+                }`}
+              >
+                <LuMail className="text-base" />
+                <span className="text-xs font-medium hidden sm:inline">
+                  {isContactOpen ? "Chat" : "Écrire à l'équipe"}
+                </span>
+              </button>
+
               {/* Bouton Nouveau Chat / Réinitialiser */}
               <button
                 type="button"
@@ -376,130 +408,156 @@ export default function ChatbotKing({ isOpen = false, setIsOpen = () => {} }) {
             )}
           </div>
 
-          {/* Corps des messages */}
-          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#f8fafc]">
-            {messages.map((msg) => {
-              const isKing = msg.role === 'assistant'
+          {/* Corps : Soit le formulaire de contact par e-mail, soit le chat classique */}
+          {isContactOpen ? (
+            <ContactKingForm
+              onClose={() => setIsContactOpen(false)}
+              onSuccess={({ name, email, subject }) => {
+                setIsContactOpen(false)
+                const confirmationMsg = {
+                  id: nextId('assistant'),
+                  role: 'assistant',
+                  content: `✨ **Message envoyé avec succès !**\n\nMerci **${name}**, votre e-mail concernant *"**${subject}**"* a bien été transmis à notre équipe TopBudget.\n\nNous vous répondrons dans les plus brefs délais à l'adresse **${email}** !\n\nN'hésitez pas si je peux vous aider sur un autre sujet en attendant.`,
+                  timestamp: getFormattedTime(),
+                }
+                setMessages((prev) => [...prev, confirmationMsg])
+              }}
+            />
+          ) : (
+            <>
+              {/* Corps des messages */}
+              <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 bg-[#f8fafc]">
+                {messages.map((msg) => {
+                  const isKing = msg.role === 'assistant'
 
-              return (
-                <div
-                  key={msg.id}
-                  className={`flex items-start gap-2.5 ${isKing ? 'justify-start' : 'justify-end'}`}
-                >
-                  {isKing && (
+                  return (
+                    <div
+                      key={msg.id}
+                      className={`flex items-start gap-2.5 ${isKing ? 'justify-start' : 'justify-end'}`}
+                    >
+                      {isKing && (
+                        <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#16a34a] to-[#22c55e] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-1 shadow-xs">
+                          K
+                        </div>
+                      )}
+
+                      <div className="max-w-[85%] sm:max-w-[80%] flex flex-col">
+                        <div
+                          className={`px-4 py-3 rounded-2xl shadow-xs transition-all ${isKing
+                              ? 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-sm'
+                              : 'bg-[#16a34a] text-white rounded-tr-sm shadow-emerald-700/10'
+                            }`}
+                        >
+                          {isKing ? (
+                            <FormattedMessage text={msg.content} />
+                          ) : (
+                            <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">
+                              {msg.content}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Heure et statut */}
+                        <div
+                          className={`flex items-center gap-1.5 mt-1 text-[10px] text-slate-400 px-1 ${isKing ? 'justify-start' : 'justify-end'
+                            }`}
+                        >
+                          <span>{msg.timestamp}</span>
+                          {!isKing && <LuCheck className="text-emerald-600 text-xs" />}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+
+                {/* Animation de King en train d'écrire */}
+                {isLoading && (
+                  <div className="flex items-start gap-2.5 justify-start animate-fade-in">
                     <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#16a34a] to-[#22c55e] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-1 shadow-xs">
                       K
                     </div>
-                  )}
-
-                  <div className="max-w-[85%] sm:max-w-[80%] flex flex-col">
-                    <div
-                      className={`px-4 py-3 rounded-2xl shadow-xs transition-all ${isKing
-                          ? 'bg-white text-slate-800 border border-slate-200/80 rounded-tl-sm'
-                          : 'bg-[#16a34a] text-white rounded-tr-sm shadow-emerald-700/10'
-                        }`}
-                    >
-                      {isKing ? (
-                        <FormattedMessage text={msg.content} />
-                      ) : (
-                        <p className="text-[13.5px] leading-relaxed whitespace-pre-wrap">
-                          {msg.content}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Heure et statut */}
-                    <div
-                      className={`flex items-center gap-1.5 mt-1 text-[10px] text-slate-400 px-1 ${isKing ? 'justify-start' : 'justify-end'
-                        }`}
-                    >
-                      <span>{msg.timestamp}</span>
-                      {!isKing && <LuCheck className="text-emerald-600 text-xs" />}
+                    <div className="bg-white border border-slate-200/80 text-slate-600 px-4 py-3 rounded-2xl rounded-tl-sm shadow-xs flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-bounce [animation-delay:-0.3s]" />
+                        <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-bounce [animation-delay:-0.15s]" />
+                        <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-bounce" />
+                      </div>
+                      <span className="text-xs text-slate-400 font-medium">King rédige sa réponse...</span>
                     </div>
                   </div>
-                </div>
-              )
-            })}
+                )}
 
-            {/* Animation de King en train d'écrire */}
-            {isLoading && (
-              <div className="flex items-start gap-2.5 justify-start animate-fade-in">
-                <div className="w-7 h-7 rounded-xl bg-gradient-to-tr from-[#16a34a] to-[#22c55e] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-1 shadow-xs">
-                  K
-                </div>
-                <div className="bg-white border border-slate-200/80 text-slate-600 px-4 py-3 rounded-2xl rounded-tl-sm shadow-xs flex items-center gap-2">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-bounce [animation-delay:-0.3s]" />
-                    <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-bounce [animation-delay:-0.15s]" />
-                    <span className="w-2 h-2 rounded-full bg-[#16a34a] animate-bounce" />
+                {/* Suggestions de questions rapides quand peu de messages */}
+                {messages.length <= 2 && !isLoading && (
+                  <div className="pt-2 animate-fade-in">
+                    <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                      <LuSparkles className="text-[#16a34a]" /> Questions fréquentes
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {QUICK_QUESTIONS.map((question) => (
+                        <button
+                          key={question}
+                          type="button"
+                          onClick={() => handleSend(question)}
+                          className="text-left text-xs bg-white hover:bg-[#f0fdf4] text-slate-700 hover:text-[#16a34a] border border-slate-200/80 hover:border-[#bbf7d0] px-3 py-1.5 rounded-xl transition-all shadow-xs hover:shadow-sm active:scale-[0.98]"
+                        >
+                          {question}
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                  <span className="text-xs text-slate-400 font-medium">King rédige sa réponse...</span>
+                )}
+
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Formulaire de saisie */}
+              <div className="p-3 sm:p-4 bg-white border-t border-slate-200/80">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    handleSend()
+                  }}
+                  className="flex items-center gap-2"
+                >
+                  <input
+                    ref={inputRef}
+                    type="text"
+                    id="chatbot-king-input"
+                    value={inputText}
+                    onChange={(e) => setInputText(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Posez votre question à King..."
+                    disabled={isLoading}
+                    autoComplete="off"
+                    className="flex-1 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-[#16a34a] focus:bg-white text-slate-800 text-sm px-4 py-3 rounded-2xl outline-none focus:outline-none transition-all placeholder:text-slate-400 disabled:opacity-60"
+                  />
+
+                  <button
+                    type="submit"
+                    id="chatbot-king-btn-send"
+                    disabled={isLoading || !inputText.trim()}
+                    aria-label="Envoyer le message"
+                    className="bg-[#16a34a] hover:bg-[#15803d] disabled:bg-slate-200 disabled:text-slate-400 text-white p-3 rounded-2xl transition-all shadow-sm hover:shadow-md disabled:shadow-none flex-shrink-0 active:scale-[0.96]"
+                  >
+                    <LuSend className="text-lg" />
+                  </button>
+                </form>
+
+                <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-400">
+                  <button
+                    type="button"
+                    onClick={() => setIsContactOpen(true)}
+                    className="text-emerald-700 hover:text-emerald-800 font-semibold flex items-center gap-1 hover:underline"
+                  >
+                    <LuMail className="text-xs" />
+                    Écrire à l&apos;équipe
+                  </button>
+                  <span>Touche Entrée ↵ pour envoyer</span>
                 </div>
               </div>
-            )}
-
-            {/* Suggestions de questions rapides quand peu de messages */}
-            {messages.length <= 2 && !isLoading && (
-              <div className="pt-2 animate-fade-in">
-                <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <LuSparkles className="text-[#16a34a]" /> Questions fréquentes
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {QUICK_QUESTIONS.map((question) => (
-                    <button
-                      key={question}
-                      type="button"
-                      onClick={() => handleSend(question)}
-                      className="text-left text-xs bg-white hover:bg-[#f0fdf4] text-slate-700 hover:text-[#16a34a] border border-slate-200/80 hover:border-[#bbf7d0] px-3 py-1.5 rounded-xl transition-all shadow-xs hover:shadow-sm active:scale-[0.98]"
-                    >
-                      {question}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-
-          {/* Formulaire de saisie */}
-          <div className="p-3 sm:p-4 bg-white border-t border-slate-200/80">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleSend()
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                id="chatbot-king-input"
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Posez votre question à King..."
-                disabled={isLoading}
-                autoComplete="off"
-                className="flex-1 bg-slate-50 border border-slate-200 hover:border-slate-300 focus:border-[#16a34a] focus:bg-white text-slate-800 text-sm px-4 py-3 rounded-2xl outline-none focus:outline-none transition-all placeholder:text-slate-400 disabled:opacity-60"
-              />
-
-              <button
-                type="submit"
-                id="chatbot-king-btn-send"
-                disabled={isLoading || !inputText.trim()}
-                aria-label="Envoyer le message"
-                className="bg-[#16a34a] hover:bg-[#15803d] disabled:bg-slate-200 disabled:text-slate-400 text-white p-3 rounded-2xl transition-all shadow-sm hover:shadow-md disabled:shadow-none flex-shrink-0 active:scale-[0.96]"
-              >
-                <LuSend className="text-lg" />
-              </button>
-            </form>
-
-            <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-400">
-              <span>TopBudget · Conseiller personnel en direct</span>
-              <span>Touche Entrée ↵ pour envoyer</span>
-            </div>
-          </div>
+            </>
+          )}
         </div>
       )}
     </>

@@ -166,6 +166,9 @@ Voici les réponses types à adapter avec ton propre style humain lors des écha
 **Q12 : Que faire si je dépasse l'une de mes enveloppes ?**
 > Ne vous inquiétez pas, cela arrive à tout le monde. Regardez nos conseils sur votre tableau de bord : nous vous suggérons souvent de transférer un montant d'une enveloppe où il vous reste de la marge (comme les loisirs) vers l'enveloppe dépassée, afin de rééquilibrer votre mois.
 
+**Q13 : Comment contacter l'équipe TopBudget ou envoyer un e-mail ?**
+> Vous pouvez envoyer un e-mail directement à notre équipe technique et support depuis cette discussion ! Cliquez simplement sur le bouton **"Écrire à l'équipe"** dans l'en-tête de notre chat. Indiquez votre nom, votre e-mail et votre message : nous vous répondrons directement par e-mail dans les plus brefs délais.
+
 ---
 
 # EXEMPLES D'INTERACTIONS CONVERSATIONNELLES
